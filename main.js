@@ -95,9 +95,11 @@ function distFromCenter(x,y) {
 
 function update() {
   satellites = satellites.filter(s=>{
-    if (distFromCenter(s.x,s.y) < 100) {
-      s.dy *= 0.9;
-      s.dx *= 0.9;
+    let dist = distFromCenter(s.x,s.y);
+    if (dist < 140) {
+      let coeff = Math.pow((140-dist)/80,2)/500;
+      s.dy += (s.y-cHeight/2)*coeff;
+      s.dx += (s.x-cWidth/2)*coeff;
     }
 
     s.dx+=(Math.random()-.5)*.05;
@@ -105,7 +107,8 @@ function update() {
 
     s.x+=s.dx;
     s.y+=s.dy;
-    if (s.x-size < cWidth && s.y-size <cHeight) return s;
+    if (s.x-size < cWidth && s.x+size > 0
+        && s.y-size < cHeight && s.y+size > 0) return s;
   });
 
   for (let i = 0; i < 50-satellites.length; i++) {
