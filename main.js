@@ -11,12 +11,21 @@ const satelliteTypes = [
    sides: 20},
 ]
 
-let satellites = [];
-const stars = [];
-
 const size = 8;
 const weight = 2;
 const speed = 0.75;
+
+const playerSize = 28;
+const playerMargin = 9;
+const innerMargin = playerMargin-3;
+const playerSpeed = 4;
+
+const gs = {
+  satellites: [],
+  stars: [],
+  playerPos: [[100,500],[600,500]],
+  heldKeys: new Set()
+}
 
 $(document).ready(function(){
   let $game = $('#game');
@@ -32,14 +41,24 @@ $(document).ready(function(){
     update();
     draw();
   }, 15);
+
+  $(document).keyup(function(e) {
+    gs.heldKeys.delete(e.which);
+  });
+
+  $(document).keydown(function(e) {
+    gs.heldKeys.add(e.which);
+  });
 });
+
+
 
 function randInt(max) {
   return Math.floor(Math.random()*max);
 }
 
 function setupStars() {
-  stars.length = 0;
+  gs.stars = [];
   for (let i = 0; i < 100; i++) {
     const newStar = {};
     newStar.size = randInt(2)+1;
@@ -51,12 +70,12 @@ function setupStars() {
       newStar.y = randInt(cHeight);
       dist = distFromCenter(newStar.x, newStar.y);
     }
-    stars.push(newStar);
+    gs.stars.push(newStar);
   }
 }
 
 function setupSatellites() {
-  satellites.length = 0;
+  gs.satellites = [];
   for (let i = 0; i < 50; i++) {
     const newSatellite = {};
     newSatellite.type = satelliteTypes[randInt(5)];
@@ -70,7 +89,7 @@ function setupSatellites() {
 
     newSatellite.dx = speed;
     newSatellite.dy = speed;
-    satellites.push(newSatellite);
+    gs.satellites.push(newSatellite);
   }
 }
 
@@ -86,7 +105,7 @@ function addSatellite() {
   }
   newSatellite.dx = speed;
   newSatellite.dy = speed;
-  satellites.push(newSatellite);
+  gs.satellites.push(newSatellite);
 }
 
 function distFromCenter(x,y) {
@@ -94,7 +113,7 @@ function distFromCenter(x,y) {
 }
 
 function update() {
-  satellites = satellites.filter(s=>{
+  gs.satellites = gs.satellites.filter(s=>{
     let dist = distFromCenter(s.x,s.y);
     if (dist < 140) {
       let coeff = Math.pow((140-dist)/80,2)/500;
@@ -111,8 +130,41 @@ function update() {
         && s.y-size < cHeight && s.y+size > 0) return s;
   });
 
-  for (let i = 0; i < 50-satellites.length; i++) {
+  for (let i = 0; i < 50-gs.satellites.length; i++) {
     addSatellite();
+  }
+
+  if (gs.heldKeys.size > 0) {
+    gs.heldKeys.forEach(k => {
+      switch(k) {
+        case 37: // left
+          gs.playerPos[1][0] -= playerSpeed;
+          break;
+        case 38: // up
+          gs.playerPos[1][1] -= playerSpeed;
+          break;
+        case 39: // right
+          gs.playerPos[1][0] += playerSpeed;
+          break;
+        case 40: // down
+          gs.playerPos[1][1] += playerSpeed;
+          break;
+        case 65: // A
+          gs.playerPos[0][0] -= playerSpeed;
+          break;
+        case 87: // W
+          gs.playerPos[0][1] -= playerSpeed;
+          break;
+        case 68: // D
+          gs.playerPos[0][0] += playerSpeed;
+          break;
+        case 83: // S
+          gs.playerPos[0][1] += playerSpeed;
+          break;
+        default:
+          break;
+      }
+    });
   }
 }
 
@@ -120,13 +172,13 @@ function draw() {
   ctx.clearRect(0,0,cWidth,cHeight);
   ctx.drawImage($('#earth')[0], cWidth/2-80, cHeight/2-80, 160, 160);
 
-  satellites.map(s=>{
+  gs.satellites.map(s=>{
     drawPolygon(ctx, s.x, s.y, s.type.sides, size,
                 {color:s.type.color, weight:weight});
   });
 
 
-  stars.map(s=>{
+  gs.stars.map(s=>{
     let bri = Math.floor(Math.sin((Date.now()-startTime)/300
               +s.twinkle*100)*75+180);
     ctx.fillStyle=`rgb(${bri},${bri},${bri})`;
@@ -134,4 +186,54 @@ function draw() {
     ctx.arc(s.x, s.y, s.size, 0, Math.PI*2);
     ctx.fill();
   });
+
+  drawPlayers();
+}
+
+function drawPlayers() {
+  for (let i = 0; i<2; i++) {
+    drawPlayer(gs.playerPos[i][0], gs.playerPos[i][1],i);
+  }
+}
+
+function drawPlayer(x, y, player) {
+  ctx.fillStyle = player ? 'black' : 'white';
+
+  const topLeft = [x-playerSize/2, y-playerSize/2+playerMargin];
+  const topRight = [x+playerSize/2, y-playerSize/2+playerMargin];
+  const bottomLeft = [x-playerSize/2, y+playerSize/2-playerMargin];
+  const bottomRight = [x+playerSize/2, y+playerSize/2-playerMargin];
+  const leftTop = [x-playerSize/2+playerMargin, y-playerSize/2];
+  const rightTop = [x+playerSize/2-playerMargin, y-playerSize/2];
+  const leftBottom = [x-playerSize/2+playerMargin, y+playerSize/2];
+  const rightBottom = [x+playerSize/2-playerMargin, y+playerSize/2];
+
+  const innerTop = [x, y-innerMargin];
+  const innerLeft = [x-innerMargin, y];
+  const innerRight = [x+innerMargin, y];
+  const innerBottom = [x, y+innerMargin];
+
+  ctx.beginPath();
+  ctx.moveTo(...topLeft);
+  ctx.lineTo(...bottomLeft);
+  ctx.lineTo(...innerLeft);
+  ctx.fill();
+
+  ctx.beginPath();
+  ctx.moveTo(...leftTop);
+  ctx.lineTo(...rightTop);
+  ctx.lineTo(...innerTop);
+  ctx.fill();
+
+  ctx.beginPath();
+  ctx.moveTo(...topRight);
+  ctx.lineTo(...bottomRight);
+  ctx.lineTo(...innerRight);
+  ctx.fill();
+
+  ctx.beginPath();
+  ctx.moveTo(...leftBottom);
+  ctx.lineTo(...rightBottom);
+  ctx.lineTo(...innerBottom);
+  ctx.fill();
 }
