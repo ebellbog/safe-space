@@ -11,20 +11,22 @@ const satelliteTypes = [
    sides: 20},
 ]
 
-const size = 8;
+const satelliteSize = 9;
 const weight = 2;
 const speed = 0.75;
 
-const playerSize = 28;
-const playerMargin = 9;
-const innerMargin = playerMargin-3;
+const playerSize = 30;
+const playerMargin = 11;
+const innerMargin = playerMargin-4;
 const playerSpeed = 4;
 
 const gs = {
-  satellites: [],
+  satellites: {},
+  highlighted: [-1,-1],
+  selected: [-1,-1],
   stars: [],
   playerPos: [[100,500],[600,500]],
-  heldKeys: new Set()
+  heldKeys: new Set(),
 }
 
 $(document).ready(function(){
@@ -47,7 +49,29 @@ $(document).ready(function(){
   });
 
   $(document).keydown(function(e) {
-    gs.heldKeys.add(e.which);
+    switch(e.which) {
+      case 67: // c
+        if (gs.highlighted[0]) {
+         gs.selected[0] = gs.highlighted[0];
+        };
+        break;
+      case 86: // v
+        gs.selected[0] = -1;
+        break;
+      case 78: // n
+        if (gs.highlighted[1]) {
+         gs.selected[1] = gs.highlighted[1];
+        };
+        break;
+      case 77: // m
+        gs.selected[1] = -1;
+        break;
+      case 32: // space
+        break;
+      default:
+        gs.heldKeys.add(e.which);
+        break;
+    }
   });
 });
 
@@ -75,7 +99,7 @@ function setupStars() {
 }
 
 function setupSatellites() {
-  gs.satellites = [];
+  gs.satellites = {};
   for (let i = 0; i < 50; i++) {
     const newSatellite = {};
     newSatellite.type = satelliteTypes[randInt(5)];
@@ -89,7 +113,7 @@ function setupSatellites() {
 
     newSatellite.dx = speed;
     newSatellite.dy = speed;
-    gs.satellites.push(newSatellite);
+    gs.satellites[generateId()] = newSatellite;
   }
 }
 
@@ -97,26 +121,50 @@ function addSatellite() {
   const newSatellite = {};
   newSatellite.type = satelliteTypes[randInt(5)];
   if (Math.random()>0.5) {
-    newSatellite.x = -size;
+    newSatellite.x = -satelliteSize;
     newSatellite.y = randInt(cHeight);
   } else {
-    newSatellite.y = -size;
+    newSatellite.y = -satelliteSize;
     newSatellite.x = randInt(cWidth);
   }
   newSatellite.dx = speed;
   newSatellite.dy = speed;
-  gs.satellites.push(newSatellite);
+  gs.satellites[generateId()] = newSatellite;
+}
+
+function generateId() {
+  return Math.floor(Math.random()*100000);
+}
+
+function getDist(p1, p2) {
+  return Math.sqrt(Math.pow(p1[0]-p2[0],2)+Math.pow(p1[1]-p2[1],2));
 }
 
 function distFromCenter(x,y) {
-  return Math.sqrt(Math.pow(x-cWidth/2,2)+Math.pow(y-cHeight/2,2))
+  return getDist([x,y], [cWidth/2,cHeight/2]);
+}
+
+function isInBounds(x,y) {
+  return (x-satelliteSize < cWidth && x+satelliteSize > 0
+        && y-satelliteSize < cHeight && y+satelliteSize > 0);
+}
+
+function isSelected(k) {
+  return (gs.selected[0] == k || gs.selected[1] == k);
+}
+
+function isHighlighted(k) {
+  return (gs.highlighted[0] == k || gs.highlighted[1] == k);
 }
 
 function update() {
-  gs.satellites = gs.satellites.filter(s=>{
-    let dist = distFromCenter(s.x,s.y);
+  Object.keys(gs.satellites).map(k=>{
+    if (isSelected(k)) return;
+    const s = gs.satellites[k];
+
+    const dist = distFromCenter(s.x,s.y);
     if (dist < 140) {
-      let coeff = Math.pow((140-dist)/80,2)/500;
+      const coeff = Math.pow((140-dist)/80,2)/500;
       s.dy += (s.y-cHeight/2)*coeff;
       s.dx += (s.x-cWidth/2)*coeff;
     }
@@ -126,11 +174,10 @@ function update() {
 
     s.x+=s.dx;
     s.y+=s.dy;
-    if (s.x-size < cWidth && s.x+size > 0
-        && s.y-size < cHeight && s.y+size > 0) return s;
+    if (!isInBounds(s.x,s.y)) delete(gs.satellites[k]);
   });
 
-  for (let i = 0; i < 50-gs.satellites.length; i++) {
+  for (let i = 0; i < 50-Object.keys(gs.satellites).length; i++) {
     addSatellite();
   }
 
@@ -172,11 +219,37 @@ function draw() {
   ctx.clearRect(0,0,cWidth,cHeight);
   ctx.drawImage($('#earth')[0], cWidth/2-80, cHeight/2-80, 160, 160);
 
-  gs.satellites.map(s=>{
-    drawPolygon(ctx, s.x, s.y, s.type.sides, size,
-                {color:s.type.color, weight:weight});
-  });
+  const newHighlighted = [-1,-1];
+  const minDist = [17,17];
+  Object.keys(gs.satellites).map(k=>{
+    const s = gs.satellites[k];
 
+    if (isSelected(k)) {
+      drawPolygon(ctx, s.x, s.y, s.type.sides, satelliteSize+2,
+                  {color:s.type.color, weight:weight, style:'fill'});
+      drawPolygon(ctx, s.x, s.y, s.type.sides, satelliteSize+3,
+                  {color:'white', weight:3, style:'stroke'});
+
+    } else {
+      let highlight = false;
+      for (let i = 0; i < 2; i++) {
+        const dist = getDist([s.x,s.y], gs.playerPos[i]);
+        if (dist < minDist[i]) {
+          newHighlighted[i] = parseInt(k);
+          minDist[i] = dist;
+          highlight = true;
+        }
+      }
+
+      const style =  isSelected(k) || highlight ? 'fill' : 'stroke';
+      const expand = isSelected(k) || highlight ? 3 : 0;
+
+      drawPolygon(ctx, s.x, s.y, s.type.sides, satelliteSize+expand,
+                  {color:s.type.color, weight:weight, style:style});
+    }
+
+  });
+  gs.highlighted = newHighlighted;
 
   gs.stars.map(s=>{
     let bri = Math.floor(Math.sin((Date.now()-startTime)/300
