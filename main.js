@@ -149,12 +149,39 @@ function isInBounds(x,y) {
         && y-satelliteSize < cHeight && y+satelliteSize > 0);
 }
 
+function crossesEarth(p1,p2) {
+  const eX = cWidth/2;
+  const eY = cHeight/2;
+  const pE = [eX,eY];
+  const eR = 80;
+
+  const m1 = (p2[1]-p1[1])/(p2[0]-p1[0]);
+  const b1 = (p1[1]-p1[0]*m1);
+
+  const m2 = -1/m1;
+  const b2 = (eY-eX*m2);
+
+  //m1*x+b1 = m2*x+b2;
+  const cX = (b2-b1)/(m1-m2);
+  const cY = m1*cX+b1;
+  let p3 = [cX,cY];
+
+  if (getDist(p1,p3) > getDist(p1,p2)) p3 = p2;
+  else if (getDist(p2,p3) > getDist(p1,p2)) p3 = p1;
+
+  return getDist(p3,pE) < eR;
+}
+
 function isSelected(k) {
   return (gs.selected[0] == k || gs.selected[1] == k);
 }
 
 function isHighlighted(k) {
   return (gs.highlighted[0] == k || gs.highlighted[1] == k);
+}
+
+function otherPlayer(player) {
+  return (player+1)%2;
 }
 
 function update() {
@@ -216,6 +243,7 @@ function update() {
 }
 
 function draw() {
+  ctx.save();
   ctx.clearRect(0,0,cWidth,cHeight);
   ctx.drawImage($('#earth')[0], cWidth/2-80, cHeight/2-80, 160, 160);
 
@@ -260,7 +288,30 @@ function draw() {
     ctx.fill();
   });
 
+
+  ctx.save();
+  ctx.lineWidth = 4;
+  ctx.lineCap = 'round';
+
+  for (let i = 0; i < 2; i++) {
+    if (gs.selected[i] > -1) {
+      const s = gs.satellites[gs.selected[i]];
+      const valid = !crossesEarth([s.x,s.y],gs.playerPos[otherPlayer(i)]);
+      ctx.setLineDash(valid ? [] : [1,10]);
+      ctx.globalAlpha = valid ? 0.5 : 0.8;
+      ctx.strokeStyle = s.type.color;
+
+      ctx.beginPath();
+      ctx.moveTo(s.x, s.y);
+      ctx.lineTo(...gs.playerPos[otherPlayer(i)]);
+      ctx.stroke();
+    }
+  }
+
+  ctx.restore();
+
   drawPlayers();
+  ctx.restore();
 }
 
 function drawPlayers() {
@@ -269,8 +320,20 @@ function drawPlayers() {
   }
 }
 
-function drawPlayer(x, y, player) {
-  ctx.fillStyle = player ? 'black' : 'white';
+function drawPlayer(x, y, player, color) {
+  ctx.save();
+  const s = gs.selected[otherPlayer(player)];
+  if (color) {
+    ctx.fillStyle=color;
+  }
+  else if (s == -1) {
+    ctx.fillStyle = player ? 'black' : 'white';
+    ctx.shadowColor = player ? 'rgba(255,255,255,0.9)' : 'rgba(0,0,0,0.75)';
+  } else {
+    ctx.fillStyle =  gs.satellites[s].type.color;
+    ctx.shadowColor = 'black';
+  }
+  ctx.shadowBlur = 8;
 
   const topLeft = [x-playerSize/2, y-playerSize/2+playerMargin];
   const topRight = [x+playerSize/2, y-playerSize/2+playerMargin];
@@ -309,4 +372,6 @@ function drawPlayer(x, y, player) {
   ctx.lineTo(...rightBottom);
   ctx.lineTo(...innerBottom);
   ctx.fill();
+
+  ctx.restore();
 }
