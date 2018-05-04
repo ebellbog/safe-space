@@ -24,8 +24,12 @@ const gs = {
   satellites: {},
   highlighted: [-1,-1],
   selected: [-1,-1],
+  connected: new Set(),
+  connections: {},
+  validConnection: [false, false],
   stars: [],
   playerPos: [[100,500],[600,500]],
+  playerVector: [[0,0], [0,0]],
   heldKeys: new Set(),
 }
 
@@ -51,17 +55,13 @@ $(document).ready(function(){
   $(document).keydown(function(e) {
     switch(e.which) {
       case 67: // c
-        if (gs.highlighted[0]) {
-         gs.selected[0] = gs.highlighted[0];
-        };
+        selectWithPlayer(0);
         break;
       case 86: // v
         gs.selected[0] = -1;
         break;
       case 78: // n
-        if (gs.highlighted[1]) {
-         gs.selected[1] = gs.highlighted[1];
-        };
+        selectWithPlayer(1);
         break;
       case 77: // m
         gs.selected[1] = -1;
@@ -132,8 +132,41 @@ function addSatellite() {
   gs.satellites[generateId()] = newSatellite;
 }
 
+function createConnection(id1,id2) {
+  const s1 = gs.satellites[id1];
+  const s2 = gs.satellites[id2];
+  if (crossesEarth([s1.x,s1.y], [s2.x,s2.y])) return;
+
+  const newConnection = {};
+  newConnection.p1 = [s1.x,s1.y];
+  newConnection.p2 = [s2.x,s2.y];
+  newConnection.color = s1.type.color;
+
+  gs.connections[generateId()] = newConnection;
+  gs.connected.add(id1).add(id2);
+  for (let i = 0; i < 2; i++) {
+    if (gs.selected[i] == id1 || gs.selected[i] == id2) gs.selected[i] = -1;
+  }
+}
+
+function selectWithPlayer(player) {
+  if (gs.highlighted[player] > -1) {
+    const pType = getPlayerType(player);
+    if (pType) {
+      const hType = gs.satellites[gs.highlighted[player]].type;
+      if (hType != pType) return;
+      else {
+        createConnection(gs.highlighted[player],
+                         gs.selected[otherPlayer(player)]);
+      }
+    } else {
+      gs.selected[player] = gs.highlighted[player];
+    }
+  };
+}
+
 function generateId() {
-  return Math.floor(Math.random()*100000);
+  return Math.floor(Math.random()*1000000);
 }
 
 function getDist(p1, p2) {
@@ -144,9 +177,9 @@ function distFromCenter(x,y) {
   return getDist([x,y], [cWidth/2,cHeight/2]);
 }
 
-function isInBounds(x,y) {
-  return (x-satelliteSize < cWidth && x+satelliteSize > 0
-        && y-satelliteSize < cHeight && y+satelliteSize > 0);
+function isInBounds(x, y, size) {
+  return (x-size < cWidth && x+size > 0
+        && y-size < cHeight && y+size > 0);
 }
 
 function crossesEarth(p1,p2) {
@@ -180,18 +213,30 @@ function isHighlighted(k) {
   return (gs.highlighted[0] == k || gs.highlighted[1] == k);
 }
 
+function isConnected(k) {
+  return gs.connected.has(parseInt(k));
+}
+
+function getPlayerType(player) {
+  let pType = false;
+  if (gs.selected[otherPlayer(player)] > -1) {
+    pType = gs.satellites[gs.selected[otherPlayer(player)]].type;
+  }
+  return pType;
+}
+
 function otherPlayer(player) {
   return (player+1)%2;
 }
 
 function update() {
   Object.keys(gs.satellites).map(k=>{
-    if (isSelected(k)) return;
+    if (isSelected(k) || isConnected(k)) return;
     const s = gs.satellites[k];
 
     const dist = distFromCenter(s.x,s.y);
     if (dist < 140) {
-      const coeff = Math.pow((140-dist)/80,2)/500;
+      const coeff = Math.pow((140-dist)/90,2)/400;
       s.dy += (s.y-cHeight/2)*coeff;
       s.dx += (s.x-cWidth/2)*coeff;
     }
@@ -201,27 +246,35 @@ function update() {
 
     s.x+=s.dx;
     s.y+=s.dy;
-    if (!isInBounds(s.x,s.y)) delete(gs.satellites[k]);
+    if (!isInBounds(s.x,s.y,satelliteSize)) delete(gs.satellites[k]);
   });
 
   for (let i = 0; i < 50-Object.keys(gs.satellites).length; i++) {
     addSatellite();
   }
 
+  const acc = .25;
+  const max = 5.5;
+  let doAcc = [false, false];
+
   if (gs.heldKeys.size > 0) {
     gs.heldKeys.forEach(k => {
       switch(k) {
         case 37: // left
-          gs.playerPos[1][0] -= playerSpeed;
+          gs.playerVector[1][0] -= acc;
+          doAcc[1] = true;
           break;
         case 38: // up
-          gs.playerPos[1][1] -= playerSpeed;
+          gs.playerVector[1][1] -= acc;
+          doAcc[1] = true;
           break;
         case 39: // right
-          gs.playerPos[1][0] += playerSpeed;
+          gs.playerVector[1][0] += acc;
+          doAcc[1] = true;
           break;
         case 40: // down
-          gs.playerPos[1][1] += playerSpeed;
+          gs.playerVector[1][1] += acc;
+          doAcc[1] = true;
           break;
         case 65: // A
           gs.playerPos[0][0] -= playerSpeed;
@@ -239,6 +292,32 @@ function update() {
           break;
       }
     });
+
+    for (let i = 0; i < 2; i++) {
+      const mag = Math.sqrt(Math.pow(gs.playerVector[i][0],2)+
+                            Math.pow(gs.playerVector[i][1],2));
+      const scale = max/mag;
+      if (scale < 1) {
+        gs.playerVector[i][0] *= scale;
+        gs.playerVector[i][1] *= scale;
+      }
+    }
+  }
+
+  for (let i = 0; i < 2; i++) {
+    if (!doAcc[i]) {
+      gs.playerVector[i][0] *= .85;
+      gs.playerVector[i][1] *= .85;
+    }
+
+    const newX = gs.playerPos[i][0]+gs.playerVector[i][0];
+    const newY = gs.playerPos[i][1]+gs.playerVector[i][1];
+
+    if (!isInBounds(newX, newY, 0)) {
+      gs.playerVector[i] = [0,0];
+      continue;
+    }
+    gs.playerPos[i] = [newX, newY];
   }
 }
 
@@ -247,6 +326,15 @@ function draw() {
   ctx.clearRect(0,0,cWidth,cHeight);
   ctx.drawImage($('#earth')[0], cWidth/2-80, cHeight/2-80, 160, 160);
 
+  gs.stars.map(s=>{
+    let bri = Math.floor(Math.sin((Date.now()-startTime)/300
+              +s.twinkle*100)*75+180);
+    ctx.fillStyle=`rgb(${bri},${bri},${bri})`;
+    ctx.beginPath();
+    ctx.arc(s.x, s.y, s.size, 0, Math.PI*2);
+    ctx.fill();
+  });
+
   const newHighlighted = [-1,-1];
   const minDist = [17,17];
   Object.keys(gs.satellites).map(k=>{
@@ -254,13 +342,20 @@ function draw() {
 
     if (isSelected(k)) {
       drawPolygon(ctx, s.x, s.y, s.type.sides, satelliteSize+2,
-                  {color:s.type.color, weight:weight, style:'fill'});
+                  {color:s.type.color, style:'fill'});
       drawPolygon(ctx, s.x, s.y, s.type.sides, satelliteSize+3,
                   {color:'white', weight:3, style:'stroke'});
 
+    } else if (isConnected(k)){
+      drawPolygon(ctx, s.x, s.y, s.type.sides, satelliteSize+2,
+                  {color:s.type.color, style:'fill'});
     } else {
       let highlight = false;
       for (let i = 0; i < 2; i++) {
+        const pType = getPlayerType(i);
+        if (pType && pType != s.type) continue;
+        if (pType && !gs.validConnection[i]) continue;
+
         const dist = getDist([s.x,s.y], gs.playerPos[i]);
         if (dist < minDist[i]) {
           newHighlighted[i] = parseInt(k);
@@ -279,27 +374,36 @@ function draw() {
   });
   gs.highlighted = newHighlighted;
 
-  gs.stars.map(s=>{
-    let bri = Math.floor(Math.sin((Date.now()-startTime)/300
-              +s.twinkle*100)*75+180);
-    ctx.fillStyle=`rgb(${bri},${bri},${bri})`;
-    ctx.beginPath();
-    ctx.arc(s.x, s.y, s.size, 0, Math.PI*2);
-    ctx.fill();
-  });
+  drawConnections();
+  drawPlayers();
+  ctx.restore();
+}
 
-
+function drawConnections() {
   ctx.save();
-  ctx.lineWidth = 4;
   ctx.lineCap = 'round';
 
   for (let i = 0; i < 2; i++) {
     if (gs.selected[i] > -1) {
       const s = gs.satellites[gs.selected[i]];
-      const valid = !crossesEarth([s.x,s.y],gs.playerPos[otherPlayer(i)]);
-      ctx.setLineDash(valid ? [] : [1,10]);
-      ctx.globalAlpha = valid ? 0.5 : 0.8;
+
       ctx.strokeStyle = s.type.color;
+
+      const valid = !crossesEarth([s.x,s.y],gs.playerPos[otherPlayer(i)]);
+      gs.validConnection[otherPlayer(i)] = valid;
+
+      const width = 2000/getDist([s.x,s.y], gs.playerPos[otherPlayer(i)]);
+
+      if (valid) {
+        ctx.lineWidth = Math.min(Math.max(width, .5), 10);
+        ctx.setLineDash([]);
+        ctx.globalAlpha = 0.5;
+      }
+      else {
+        ctx.lineWidth = Math.min(Math.max(width, 4), 6);
+        ctx.setLineDash([1,10]);
+        ctx.globalAlpha = 0.8;
+      }
 
       ctx.beginPath();
       ctx.moveTo(s.x, s.y);
@@ -310,8 +414,15 @@ function draw() {
 
   ctx.restore();
 
-  drawPlayers();
-  ctx.restore();
+  ctx.lineWidth = 5; //TODO: width based on distance?
+  Object.keys(gs.connections).map(k=>{
+    const cnctn = gs.connections[k];
+    ctx.strokeStyle = cnctn.color;
+    ctx.beginPath();
+    ctx.moveTo(...cnctn.p1);
+    ctx.lineTo(...cnctn.p2);
+    ctx.stroke();
+  });
 }
 
 function drawPlayers() {
