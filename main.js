@@ -22,24 +22,13 @@ const playerSize = 30;
 const playerMargin = 11;
 const innerMargin = playerMargin-4;
 
-const meteorSize = 16;
+const meteorSize = 14;
 const meteorSpeed = .2;
+const maxMeteors = 6;
 
 const earthRadius = 50;
 
-const gs = {
-  satellites: {},
-  highlighted: [-1,-1],
-  selected: [-1,-1],
-  connected: new Set(),
-  connections: {},
-  validConnection: [false, false],
-  stars: [],
-  meteors: [],
-  playerPos: [[0,0], [0,0]],
-  playerVector: [[0,0], [0,0]],
-  heldKeys: new Set(),
-}
+const starCount = 120;
 
 // Setup functions
 
@@ -79,15 +68,28 @@ $(document).ready(function(){
 });
 
 function startGame() {
+  gs = {
+    satellites: {},
+    highlighted: [-1,-1],
+    selected: [-1,-1],
+    connected: new Set(),
+    connections: {},
+    validConnection: [false, false],
+    stars: [],
+    meteors: {},
+    playerVector: [[0,0], [0,0]],
+    heldKeys: new Set(),
+    startTime: Date.now(),
+    lastMeteorTime: Date.now(),
+    nextMeteor: 3000
+  }
+
   const playerMargin = 60;
   gs.playerPos = [[playerMargin, cHeight-playerMargin],
                   [cWidth-playerMargin, cHeight-playerMargin]];
 
-  gs.startTime = Date.now();
-
   setupSatellites();
   setupStars();
-  addMeteor();
 
   interval = setInterval(()=>{
     update();
@@ -97,7 +99,7 @@ function startGame() {
 
 function setupStars() {
   gs.stars = [];
-  for (let i = 0; i < 120; i++) {
+  for (let i = 0; i < starCount; i++) {
     const newStar = {};
     newStar.size = randInt(2)+1;
     newStar.twinkle = Math.random();
@@ -193,6 +195,7 @@ function addMeteor() {
       break;
   }
 
+  newMeteor.dt = randOffset(.03);
   newMeteor.dx = cWidth/2-newMeteor.x;
   newMeteor.dy = cHeight/2-newMeteor.y;
 
@@ -203,23 +206,19 @@ function addMeteor() {
   newMeteor.dx *= coeff;
   newMeteor.dy *= coeff;
 
-  gs.meteors.push(newMeteor);
+  gs.meteors[generateId()] = newMeteor;
 }
 
 function generateMeteorPoints() {
   const count = 6+randInt(6);
   const points = [];
 
-  let angle = 0, radius;
-  while (angle < Math.PI*2) {
-    radius = meteorSize+randOffset(4);
-    angle += .1+randFloat(2*Math.PI/count-.1);
+  let theta = 0, r;
+  while (theta < Math.PI*2) {
+    r = meteorSize+randOffset(4);
+    theta += .1+randFloat(2*Math.PI/count-.1);
 
-    const newPoint = [
-      radius*Math.cos(angle),
-      radius*Math.sin(angle)
-    ];
-    points.push(newPoint);
+    points.push([r, theta]);
   }
 
   return points;
@@ -407,10 +406,22 @@ function updatePlayers() {
 }
 
 function updateMeteors() {
-  gs.meteors.map(m=>{
+  Object.keys(gs.meteors).map(k=>{
+    const m = gs.meteors[k];
     m.x += m.dx;
     m.y += m.dy;
+    m.rotation += m.dt;
+
+    const dist = distFromCenter(...getMeteorCenter(m));
+    if (dist < earthRadius+meteorSize) delete(gs.meteors[k]);
   });
+
+  if (Date.now()-gs.lastMeteorTime > gs.nextMeteor
+      && Object.keys(gs.meteors).length < maxMeteors) {
+     addMeteor();
+     gs.lastMeteorTime = Date.now();
+     gs.nextMeteor = 6000+randInt(12000);
+  }
 }
 
 function update() {
@@ -427,7 +438,7 @@ function draw() {
   drawStars();
   drawEarth();
   drawSatellites();
-  gs.meteors.map(m=>drawMeteor(m));
+  drawMeteors();
   drawConnections();
   drawPlayers();
 }
@@ -441,7 +452,7 @@ function drawEarth() {
 
 function drawStars() {
   gs.stars.map(s=>{
-    let bri = Math.floor(Math.sin((Date.now()-gs.startTime)/300
+    let bri = Math.floor(Math.sin((Date.now()-gs.startTime)/500
               +s.twinkle*100)*75+180);
     ctx.fillStyle=`rgb(${bri},${bri},${bri})`;
     ctx.beginPath();
@@ -450,26 +461,55 @@ function drawStars() {
   });
 }
 
+function drawMeteors() {
+  Object.keys(gs.meteors).map(k=>drawMeteor(gs.meteors[k]));
+}
+
 function drawMeteor(m) {
   ctx.save();
 
-  ctx.fillStyle = '#a98c70';
+  const center = getMeteorCenter(m);
+  const gradient = ctx.createRadialGradient(
+      center[0], center[1], 0,
+      center[0], center[1], meteorSize);
+  gradient.addColorStop(0.1, "#a98b70");
+  gradient.addColorStop(1, "#604b39");
+
+  ctx.fillStyle = gradient;//'#a98c70';
   ctx.strokeStyle = m.type.color;
-  ctx.lineWidth = .5;
+  ctx.lineWidth = .75;
 
   ctx.shadowColor = m.type.color;
-  ctx.shadowBlur = 8;
+  ctx.shadowBlur = 10;
 
   ctx.beginPath();
-  ctx.moveTo(m.points[0][0]+m.x, m.points[0][1]+m.y);
+  ctx.moveTo(...getMeteorCoord(m,0));
   for (let i = 1; i < m.points.length; i++) {
-    ctx.lineTo(m.points[i][0]+m.x, m.points[i][1]+m.y);
+    ctx.lineTo(...getMeteorCoord(m,i));
   }
   ctx.closePath();
 
   ctx.fill();
   ctx.stroke();
   ctx.restore();
+}
+
+function getMeteorCoord(m,i) {
+  const r = m.points[i][0];
+  const theta = m.points[i][1];
+  const angle = theta + m.rotation;
+
+  const center = getMeteorCenter(m);
+  const x = r*Math.cos(angle)+center[0];
+  const y = r*Math.sin(angle)+center[1];
+
+  return [x,y];
+}
+
+function getMeteorCenter(m) {
+  const x = m.x + m.offset*Math.cos(m.rotation);
+  const y = m.y + m.offset*Math.sin(m.rotation);
+  return [x,y];
 }
 
 function drawSatellites() {
