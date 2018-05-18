@@ -37,6 +37,9 @@ $(document).ready(function(){
   cWidth = parseInt($game.attr('width'));
   cHeight = parseInt($game.attr('height'));
 
+  alignElements();
+  $(window).resize(alignElements);
+
   $(document).keyup(function(e) {
     switch(e.which) {
       case 67: // c
@@ -78,8 +81,15 @@ $(document).ready(function(){
     startGame();
     $(e.target).hide();
   });
+
   demoGame();
 });
+
+function alignElements() {
+  const $game = $('#game');
+  $('#stats').css('left', $game.offset().left)
+             .css('top', $game.offset().top);
+}
 
 function startGame() {
   if (demoInterval) clearInterval(demoInterval);
@@ -98,9 +108,10 @@ function startGame() {
     startTime: Date.now(),
     lastAccelerateTime: Date.now(),
     lastMeteorTime: Date.now(),
-    nextMeteor: 3000,
+    nextMeteor: 5000,
     meteorSpeed: .4,
     meteorFrequency: 6,
+    meteorsStopped: 0,
     shakeEarth: 0,
     hits: 0
   }
@@ -111,6 +122,9 @@ function startGame() {
 
   setupSatellites();
   setupStars();
+
+  updateHealth();
+  updateMeteorsStopped();
 
   interval = setInterval(()=>{
     update();
@@ -469,6 +483,8 @@ function updateMeteors() {
       delete(gs.meteors[k]);
 
       gs.hits += 1;
+      updateHealth();
+
       if (gs.hits == 3) setTimeout(()=> {
         clearInterval(interval);
         alert('Game over :(');
@@ -485,6 +501,8 @@ function updateMeteors() {
       if (dist < meteorSize) {
         removeConnection(y);
         delete(gs.meteors[k]);
+        gs.meteorsStopped += 1;
+        updateMeteorsStopped();
       }
     });
   });
@@ -498,7 +516,7 @@ function updateMeteors() {
                      randInt(gs.meteorFrequency*2000);
   }
 
-  
+
   if ((Date.now()-gs.lastAccelerateTime)/1000 > 25) {
     gs.meteorSpeed = Math.min(gs.meteorSpeed+.1, 1.5);
     gs.meteorFrequency = Math.max(gs.meteorFrequency-.5, 2);
@@ -506,11 +524,29 @@ function updateMeteors() {
   }
 }
 
+function updateTimer() {
+  const elapsed = (Date.now()-gs.startTime)/1000;
+  const min = Math.floor(elapsed/60);
+  const sec = Math.floor(elapsed%60);
+  const zero = sec < 10 ? '0' : '';
+
+  const timeString = `${min}:${zero}${sec}`;
+  $('#timer').html(timeString);
+}
+
+function updateHealth() {
+  $('#health').html('❤️'.repeat(3-gs.hits));
+}
+
+function updateMeteorsStopped() {
+  $('#stopped').html(gs.meteorsStopped);
+}
+
 function update() {
   updateSatellites();
   updateMeteors();
   updatePlayers();
-  gs.hueShift += 1;
+  updateTimer();
 }
 
 // Draw functions
