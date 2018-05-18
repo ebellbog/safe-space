@@ -13,7 +13,7 @@ const satelliteTypes = [
    sides: 20},
 ]
 
-const satelliteDensity = 5; // inversely proportional
+const satelliteDensity = 6; // inversely proportional
 const satelliteSize = 8;
 const weight = 1.75;
 const rspeed = .5;
@@ -23,10 +23,9 @@ const playerMargin = 11;
 const innerMargin = playerMargin-4;
 
 const meteorSize = 14;
-const meteorSpeed = .2;
 const maxMeteors = 6;
 
-const earthRadius = 50;
+const earthRadius = 60;
 
 const starCount = 120;
 
@@ -39,7 +38,15 @@ $(document).ready(function(){
   cHeight = parseInt($game.attr('height'));
 
   $(document).keyup(function(e) {
-    gs.heldKeys.delete(e.which);
+    switch(e.which) {
+      case 67: // c
+        gs.selected[0] = -1;
+        break;
+      case 78: // n
+        gs.selected[1] = -1;
+      default:
+        gs.heldKeys.delete(e.which);
+    }
   });
 
   $(document).keydown(function(e) {
@@ -56,7 +63,10 @@ $(document).ready(function(){
       case 77: // m
         gs.selected[1] = -1;
         break;
-      case 32: // space
+      case 32:// space
+        if (!(gs.selected[0] == -1 || gs.selected[1] ==  -1)) {
+          createConnection(gs.selected[0], gs.selected[1]);
+        }
         break;
       default:
         gs.heldKeys.add(e.which);
@@ -64,10 +74,16 @@ $(document).ready(function(){
     }
   });
 
-  startGame();
+  $('#start').click((e)=>{
+    startGame();
+    $(e.target).hide();
+  });
+  demoGame();
 });
 
 function startGame() {
+  if (demoInterval) clearInterval(demoInterval);
+
   gs = {
     satellites: {},
     highlighted: [-1,-1],
@@ -80,8 +96,13 @@ function startGame() {
     playerVector: [[0,0], [0,0]],
     heldKeys: new Set(),
     startTime: Date.now(),
+    lastAccelerateTime: Date.now(),
     lastMeteorTime: Date.now(),
-    nextMeteor: 3000
+    nextMeteor: 3000,
+    meteorSpeed: .4,
+    meteorFrequency: 6,
+    shakeEarth: 0,
+    hits: 0
   }
 
   const playerMargin = 60;
@@ -97,6 +118,24 @@ function startGame() {
   }, 15);
 }
 
+function demoGame() {
+  gs = {
+    stars: [],
+    satellites: {},
+    connections: {},
+    selected: [-1, -1],
+    meteors: {},
+    playerPos: [[],[]],
+    startTime: Date.now(),
+    heldKeys: new Set()
+  }
+
+  setupStars();
+  demoInterval = setInterval(()=>{
+    draw();
+  }, 15);
+}
+
 function setupStars() {
   gs.stars = [];
   for (let i = 0; i < starCount; i++) {
@@ -105,10 +144,10 @@ function setupStars() {
     newStar.twinkle = Math.random();
 
     let dist = 0;
-    while (dist < 120) {
+    while (dist < earthRadius*1.75) {
       newStar.x = randInt(cWidth);
       newStar.y = randInt(cHeight);
-      dist = distFromCenter(newStar.x, newStar.y);
+      dist = distToCenter(newStar.x, newStar.y);
     }
     gs.stars.push(newStar);
   }
@@ -119,7 +158,7 @@ function setupSatellites() {
   const diagonalRadius = Math.sqrt(Math.pow(cWidth/2,2)+
                               Math.pow(cHeight/2,2));
   const squareRadius = Math.min(cWidth, cHeight)/2;
-  const maxRadius = (squareRadius-earthRadius-space)*.9;
+  const maxRadius = (squareRadius-earthRadius-space)*.93;
   const orbitSpace = satelliteSize*1.75;
   const indexRange = maxRadius/orbitSpace;
 
@@ -158,7 +197,9 @@ function createConnection(id1,id2) {
   if (crossesEarth([s1.x,s1.y], [s2.x,s2.y])) return;
 
   const newConnection = {};
+  newConnection.id1 = id1;
   newConnection.p1 = [s1.x,s1.y];
+  newConnection.id2 = id2;
   newConnection.p2 = [s2.x,s2.y];
   newConnection.color = s1.type.color;
 
@@ -167,6 +208,13 @@ function createConnection(id1,id2) {
   for (let i = 0; i < 2; i++) {
     if (gs.selected[i] == id1 || gs.selected[i] == id2) gs.selected[i] = -1;
   }
+}
+
+function removeConnection(cId) {
+  const c = gs.connections[cId];
+  gs.connected.delete(c.id1);
+  gs.connected.delete(c.id2);
+  delete(gs.connections[cId]);
 }
 
 function addMeteor() {
@@ -199,7 +247,7 @@ function addMeteor() {
   newMeteor.dx = cWidth/2-newMeteor.x;
   newMeteor.dy = cHeight/2-newMeteor.y;
 
-  const coeff = Math.sqrt(Math.pow(meteorSpeed,2)/
+  const coeff = Math.sqrt(Math.pow(gs.meteorSpeed,2)/
                 (Math.pow(newMeteor.dx,2)+
                  Math.pow(newMeteor.dy,2)));
 
@@ -217,6 +265,7 @@ function generateMeteorPoints() {
   while (theta < Math.PI*2) {
     r = meteorSize+randOffset(4);
     theta += .1+randFloat(2*Math.PI/count-.1);
+    theta = Math.min(theta, Math.PI*2);
 
     points.push([r, theta]);
   }
@@ -225,14 +274,15 @@ function generateMeteorPoints() {
 }
 
 function selectWithPlayer(player) {
+  if (gs.selected[player] != -1) return;
   if (gs.highlighted[player] > -1) {
     const pType = getPlayerType(player);
     if (pType) {
       const hType = gs.satellites[gs.highlighted[player]].type;
-      if (hType != pType) return;
-      else {
-        createConnection(gs.highlighted[player],
-                         gs.selected[otherPlayer(player)]);
+      if (hType == pType) {
+        gs.selected[player] = gs.highlighted[player];
+        //createConnection(gs.highlighted[player],
+        //                 gs.selected[otherPlayer(player)]);
       }
     } else {
       gs.selected[player] = gs.highlighted[player];
@@ -262,7 +312,7 @@ function getDist(p1, p2) {
   return Math.sqrt(Math.pow(p1[0]-p2[0],2)+Math.pow(p1[1]-p2[1],2));
 }
 
-function distFromCenter(x,y) {
+function distToCenter(x,y) {
   return getDist([x,y], [cWidth/2,cHeight/2]);
 }
 
@@ -276,25 +326,24 @@ function crossesEarth(p1,p2) {
   const eY = cHeight/2;
   const pE = [eX,eY];
 
-  const m1 = (p2[1]-p1[1])/(p2[0]-p1[0]);
-  const b1 = (p1[1]-p1[0]*m1);
-
-  const m2 = -1/m1;
-  const b2 = (eY-eX*m2);
-
-  //m1*x+b1 = m2*x+b2;
-  const cX = (b2-b1)/(m1-m2);
-  const cY = m1*cX+b1;
-  let p3 = [cX,cY];
-
-  if (getDist(p1,p3) > getDist(p1,p2)) p3 = p2;
-  else if (getDist(p2,p3) > getDist(p1,p2)) p3 = p1;
-
-  return getDist(p3,pE) < earthRadius;
+  return distToLine(p1,p2,pE) < earthRadius;
 }
 
-function crossesInvalidConnection(p1,p2,type) {
+function distToLine(l1,l2,p) {
+  const m1 = (l2[1]-l1[1])/(l2[0]-l1[0]);
+  const b1 = (l1[1]-l1[0]*m1);
 
+  const m2 = -1/m1;
+  const b2 = (p[1]-p[0]*m2);
+
+  const cX = (b2-b1)/(m1-m2);
+  const cY = m1*cX+b1;
+  let closest = [cX,cY];
+
+  if (getDist(l1,closest) > getDist(l1,l2)) closest = l2;
+  else if (getDist(l2,closest) > getDist(l1,l2)) closest = l1;
+
+  return getDist(closest,p);
 }
 
 function isSelected(k) {
@@ -332,9 +381,9 @@ function updateSatellites() {
 }
 
 function updatePlayers() {
-  const acc = .25;
+  const acc = .3;
   const dec = .85;
-  const max = 5.5;
+  const max = 6;
   let doAcc = [false, false];
 
   if (gs.heldKeys.size > 0) {
@@ -406,21 +455,54 @@ function updatePlayers() {
 }
 
 function updateMeteors() {
+  // move existing meteors
   Object.keys(gs.meteors).map(k=>{
     const m = gs.meteors[k];
     m.x += m.dx;
     m.y += m.dy;
     m.rotation += m.dt;
 
-    const dist = distFromCenter(...getMeteorCenter(m));
-    if (dist < earthRadius+meteorSize) delete(gs.meteors[k]);
+    // test for collision with planet
+    const dist = distToCenter(...getMeteorCenter(m));
+    if (dist < earthRadius+meteorSize) {
+      gs.shakeEarth = Date.now();
+      delete(gs.meteors[k]);
+
+      gs.hits += 1;
+      if (gs.hits == 3) setTimeout(()=> {
+        clearInterval(interval);
+        alert('Game over :(');
+        startGame();
+      }, 400);
+    }
+
+    // test for collision with line
+    Object.keys(gs.connections).map(y=>{
+      const c = gs.connections[y];
+      if (c.color != m.type.color) return;
+
+      const dist = distToLine(c.p1, c.p2, getMeteorCenter(m));
+      if (dist < meteorSize) {
+        removeConnection(y);
+        delete(gs.meteors[k]);
+      }
+    });
   });
 
+  // add new meteor
   if (Date.now()-gs.lastMeteorTime > gs.nextMeteor
       && Object.keys(gs.meteors).length < maxMeteors) {
      addMeteor();
      gs.lastMeteorTime = Date.now();
-     gs.nextMeteor = 6000+randInt(12000);
+     gs.nextMeteor = gs.meteorFrequency*1000+
+                     randInt(gs.meteorFrequency*2000);
+  }
+
+  
+  if ((Date.now()-gs.lastAccelerateTime)/1000 > 25) {
+    gs.meteorSpeed = Math.min(gs.meteorSpeed+.1, 1.5);
+    gs.meteorFrequency = Math.max(gs.meteorFrequency-.5, 2);
+    gs.lastAccelerateTime = Date.now();
   }
 }
 
@@ -428,6 +510,7 @@ function update() {
   updateSatellites();
   updateMeteors();
   updatePlayers();
+  gs.hueShift += 1;
 }
 
 // Draw functions
@@ -438,16 +521,28 @@ function draw() {
   drawStars();
   drawEarth();
   drawSatellites();
-  drawMeteors();
   drawConnections();
+  drawMeteors();
   drawPlayers();
 }
 
 function drawEarth() {
-  ctx.drawImage($('#earth')[0], cWidth/2-earthRadius,
-                                cHeight/2-earthRadius,
+  let dx = 0, dy = 0;
+  if (gs.shakeEarth && Date.now()%3==0) {
+    if (Date.now()-gs.shakeEarth > 300) gs.shakeEarth = 0;
+    else {
+      dx = randOffset(5);
+      dy = randOffset(5);
+    }
+  }
+
+  ctx.save();
+  ctx.filter = `sepia(${gs.hits/3})`;
+  ctx.drawImage($('#earth')[0], cWidth/2-earthRadius+dx,
+                                cHeight/2-earthRadius+dy,
                                 2*earthRadius,
                                 2*earthRadius);
+  ctx.restore();
 }
 
 function drawStars() {
@@ -472,7 +567,7 @@ function drawMeteor(m) {
   const gradient = ctx.createRadialGradient(
       center[0], center[1], 0,
       center[0], center[1], meteorSize);
-  gradient.addColorStop(0.1, "#a98b70");
+  gradient.addColorStop(0.1, "#b39880");
   gradient.addColorStop(1, "#604b39");
 
   ctx.fillStyle = gradient;//'#a98c70';
@@ -523,9 +618,9 @@ function drawSatellites() {
     }
 
     if (isSelected(k)) {
-      drawPolygon(ctx, s.x, s.y, s.type.sides, satelliteSize+2,
+      drawPolygon(ctx, s.x, s.y, s.type.sides, satelliteSize+1,
                   {color:s.type.color, style:'fill'});
-      drawPolygon(ctx, s.x, s.y, s.type.sides, satelliteSize+3,
+      drawPolygon(ctx, s.x, s.y, s.type.sides, satelliteSize+2,
                   {color:'white', weight:3, style:'stroke'});
 
     } else if (isConnected(k)){
@@ -535,19 +630,19 @@ function drawSatellites() {
       let highlight = false;
       for (let i = 0; i < 2; i++) {
         const pType = getPlayerType(i);
-        if (pType && pType != s.type) continue;
-        if (pType && !gs.validConnection[i]) continue;
+        if (pType && pType != s.type) continue; // skip if wrong color
+        if (pType && !gs.validConnection[i]) continue; // skip if crosses
 
         const dist = getDist([s.x,s.y], gs.playerPos[i]);
-        if (dist < minDist[i]) {
+        if (dist < minDist[i]) { // only use the closest
           newHighlighted[i] = parseInt(k);
           minDist[i] = dist;
           highlight = true;
         }
       }
 
-      const style =  isSelected(k) || highlight ? 'fill' : 'stroke';
-      const expand = isSelected(k) || highlight ? 3 : 0;
+      const style =  highlight ? 'fill' : 'stroke';
+      const expand = highlight ? 3 : 0;
 
       drawPolygon(ctx, s.x, s.y, s.type.sides, satelliteSize+expand,
                   {color:s.type.color, weight:weight, style:style});
@@ -558,10 +653,28 @@ function drawSatellites() {
 }
 
 function drawConnections() {
+  // connect currently selected satellites
   ctx.save();
   ctx.lineCap = 'round';
 
-  for (let i = 0; i < 2; i++) {
+  if (!(gs.selected[0] == -1 || gs.selected[1] == -1)) { // both selected
+    const s = gs.satellites[gs.selected[0]];
+    const t = gs.satellites[gs.selected[1]];
+
+    const gradient = ctx.createLinearGradient(s.x,s.y,t.x,t.y);
+    gradient.addColorStop(0, s.type.color);
+    gradient.addColorStop(.375+Math.sin(Date.now()/300)*.125, 'white');
+    gradient.addColorStop(.625-Math.sin(Date.now()/300)*.125, 'white');
+    gradient.addColorStop(1, t.type.color);
+
+    ctx.strokeStyle = gradient;
+    ctx.lineWidth = 4;
+    ctx.beginPath();
+    ctx.moveTo(s.x, s.y);
+    ctx.lineTo(t.x, t.y);
+    ctx.stroke();
+  } else if (gs.selected[0]+gs.selected[1] > -2) { // one selected
+    const i = gs.selected[0] == -1 ? 1 : 0; // index of selected
     if (gs.selected[i] > -1) {
       const s = gs.satellites[gs.selected[i]];
 
@@ -573,7 +686,7 @@ function drawConnections() {
       const width = 2000/getDist([s.x,s.y], gs.playerPos[otherPlayer(i)]);
 
       if (valid) {
-        ctx.lineWidth = Math.min(Math.max(width, .5), 10);
+        ctx.lineWidth = Math.min(Math.max(width, .3), 7);
         ctx.setLineDash([]);
         ctx.globalAlpha = 0.5;
       }
@@ -592,7 +705,8 @@ function drawConnections() {
 
   ctx.restore();
 
-  ctx.lineWidth = 5; //TODO: width based on distance?
+  // draw existing connections
+  ctx.lineWidth = 4; //TODO: width based on distance?
   Object.keys(gs.connections).map(k=>{
     const cnctn = gs.connections[k];
     ctx.strokeStyle = cnctn.color;

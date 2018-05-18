@@ -13,3 +13,52 @@ body {
   transform: translate(-50%,-50%);
   border-radius: 10px;
 }
+
+h1 {
+  font-size: 36px;
+}
+
+h2 {
+  font-size: 24px;
+  font-weight: 200;
+}
+
+.left {
+  float: left;
+  padding-left: 20px;
+}
+
+.right {
+  float: right;
+  padding-right: 20px;
+}
+
+.instructions {
+  font-family: 'Exo 2', sans-serif;
+  width: 180px;
+  display: none;
+}
+
+.instructions table {
+  margin-left: 20px;
+}
+
+.instructions td {
+  color: white;
+  border: 2px solid white;
+  border-radius: 3px;
+  text-align: center;
+  width: 30px;
+  line-height: 25px;
+}
+
+.instructions .hide {
+  visibility: hidden;
+}
+
+#start {
+  position: absolute;
+  bottom: 30px;
+  left: 50%;
+  transform: translate(-50%,0);
+}

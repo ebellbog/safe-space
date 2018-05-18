@@ -4,9 +4,53 @@
 <script src="./lib/poly-draw.js"></script>
 <script src="./main.js"></script>
 <link rel="stylesheet" href="./main.css">
+<link href="https://fonts.googleapis.com/css?family=Exo+2:200,400,600" rel="stylesheet">
 </head>
 <body>
-<canvas id="game" width="800" height="600"></canvas>
+<div class="instructions left">
+  <h1> Player 1 </h1>
+  <h2> Movement: </h2>
+  <table>
+    <tr>
+      <td class="hide"></td>
+      <td> W </td>
+      <td class="hide"></td>
+    </tr>
+    <tr>
+      <td> A </td>
+      <td> S </td>
+      <td> D </td>
+    </tr>
+  </table>
+  <h2> Select / release: </h2>
+  <table><tr>
+      <td> C </td>
+      <td> V </td>
+  </tr></table>
+</div>
+<div class="instructions right">
+  <h1> Player 2 </h1>
+  <h2> Movement: </h2>
+  <table>
+    <tr>
+      <td class="hide"></td>
+      <td> &uarr; </td>
+      <td class="hide"></td>
+    </tr>
+    <tr>
+      <td> &larr; </td>
+      <td> &darr; </td>
+      <td> &rarr; </td>
+    </tr>
+  </table>
+  <h2> Select / release: </h2>
+  <table><tr>
+      <td> N </td>
+      <td> M </td>
+  </tr></table>
+</div>
+<canvas id="game" width="1072" height="603"></canvas>
 <img id="earth" src="./img/planet-earth.svg" hidden></img>
+<button id="start">Start game</button>
 </body>
 </html>
