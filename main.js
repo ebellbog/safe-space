@@ -29,6 +29,8 @@ const earthRadius = 60;
 
 const starCount = 120;
 
+let demoInterval, gameInterval;
+
 // Setup functions
 
 $(document).ready(function(){
@@ -71,15 +73,13 @@ $(document).ready(function(){
           createConnection(gs.selected[0], gs.selected[1]);
         }
         break;
+      case 13: // return
+        startGame();
+        break;
       default:
         gs.heldKeys.add(e.which);
         break;
     }
-  });
-
-  $('#start').click((e)=>{
-    startGame();
-    $(e.target).hide();
   });
 
   demoGame();
@@ -93,6 +93,7 @@ function alignElements() {
 
 function startGame() {
   if (demoInterval) clearInterval(demoInterval);
+  if (gameInterval) clearInterval(gameInterval);
 
   gs = {
     satellites: {},
@@ -126,7 +127,7 @@ function startGame() {
   updateHealth();
   updateMeteorsStopped();
 
-  interval = setInterval(()=>{
+  gameInterval = setInterval(()=>{
     update();
     draw();
   }, 15);
@@ -135,18 +136,14 @@ function startGame() {
 function demoGame() {
   gs = {
     stars: [],
-    satellites: {},
-    connections: {},
-    selected: [-1, -1],
-    meteors: {},
-    playerPos: [[],[]],
     startTime: Date.now(),
-    heldKeys: new Set()
   }
 
   setupStars();
   demoInterval = setInterval(()=>{
-    draw();
+    ctx.clearRect(0,0,cWidth,cHeight);
+    drawStars();
+    drawEarth();
   }, 15);
 }
 
@@ -486,7 +483,7 @@ function updateMeteors() {
       updateHealth();
 
       if (gs.hits == 3) setTimeout(()=> {
-        clearInterval(interval);
+        clearInterval(gameInterval);
         alert('Game over :(');
         startGame();
       }, 400);

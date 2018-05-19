@@ -11,7 +11,7 @@ body {
   top: 50%;
   left: 50%;
   transform: translate(-50%,-50%);
-  border-radius: 10px;
+  height: 100%;
 }
 
 #stats {
@@ -19,8 +19,8 @@ body {
   background-color: rgba(150,150,150,0.4);
   font-family: 'Exo 2', sans-serif;
   position: absolute;
-  padding: 6px 20px 6px 10px;
-  margin: 10px;
+  padding: 10px 20px 5px 10px;
+  margin: 15px;
   border-radius: 10px;
 }
 
@@ -39,49 +39,7 @@ body {
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   text-shadow: none;
-  font-size: 24px;
-}
-
-h1 {
-  font-size: 36px;
-}
-
-h2 {
-  font-size: 24px;
-  font-weight: 200;
-}
-
-.left {
-  float: left;
-  padding-left: 20px;
-}
-
-.right {
-  float: right;
-  padding-right: 20px;
-}
-
-.instructions {
-  font-family: 'Exo 2', sans-serif;
-  width: 180px;
-  display: none;
-}
-
-.instructions table {
-  margin-left: 20px;
-}
-
-.instructions td {
-  color: white;
-  border: 2px solid white;
-  border-radius: 3px;
-  text-align: center;
-  width: 30px;
-  line-height: 25px;
-}
-
-.instructions .hide {
-  visibility: hidden;
+  font-size: 18px;
 }
 
 #start {
