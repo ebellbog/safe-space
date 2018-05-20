@@ -29,7 +29,7 @@ const earthRadius = 60;
 
 const starCount = 120;
 
-let demoInterval, gameInterval;
+let titleInterval, gameInterval;
 
 // Setup functions
 
@@ -82,7 +82,7 @@ $(document).ready(function(){
     }
   });
 
-  demoGame();
+  startTitles();
 });
 
 function alignElements() {
@@ -92,8 +92,11 @@ function alignElements() {
 }
 
 function startGame() {
-  if (demoInterval) clearInterval(demoInterval);
+  if (titleInterval) clearInterval(titleInterval);
   if (gameInterval) clearInterval(gameInterval);
+
+  $('#stats').show();
+  $('.titleScreen').hide();
 
   gs = {
     satellites: {},
@@ -133,17 +136,18 @@ function startGame() {
   }, 15);
 }
 
-function demoGame() {
+function startTitles() {
   gs = {
     stars: [],
     startTime: Date.now(),
+    heldKeys: new Set()
   }
 
   setupStars();
-  demoInterval = setInterval(()=>{
+  titleInterval = setInterval(()=>{
     ctx.clearRect(0,0,cWidth,cHeight);
     drawStars();
-    drawEarth();
+    drawLogo();
   }, 15);
 }
 
@@ -576,6 +580,42 @@ function drawEarth() {
                                 2*earthRadius,
                                 2*earthRadius);
   ctx.restore();
+}
+
+function drawLogo() {
+  const elapsed = (Date.now()-gs.startTime)/1000;
+  const radius = 205+15*Math.sin(elapsed/1.5);
+  const length = 385;
+  const rotation = 3*Math.PI/10+elapsed/10;
+  const weight = 6;
+
+  let colors = satelliteTypes.map(k=>k.color);
+  colors.push(...colors);
+
+  ctx.lineWidth = weight;
+  ctx.lineCap = 'round';
+
+  for (let i = 0; i < colors.length; i++) {
+    let angle = i*2*Math.PI/colors.length+rotation;
+    let center = [radius*Math.cos(angle)+cWidth/2,
+                  radius*Math.sin(angle)+cHeight/2];
+    let rightAngle = angle + Math.PI/2;
+
+    let p1 = [center[0]-length*Math.cos(rightAngle)/2,
+              center[1]-length*Math.sin(rightAngle)/2];
+    let p2 = [center[0]+length*Math.cos(rightAngle)/2,
+              center[1]+length*Math.sin(rightAngle)/2];
+
+    ctx.strokeStyle = colors[i];
+    ctx.beginPath();
+    ctx.moveTo(...p1);
+    ctx.lineTo(...p2);
+    ctx.stroke();
+  }
+
+  $('#title').css('text-shadow',
+      `0 0 20px rgba(255,255,255,
+      ${0.75+.25*Math.sin(2*elapsed)})`);
 }
 
 function drawStars() {
