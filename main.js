@@ -42,6 +42,8 @@ $(document).ready(function(){
   alignElements();
   $(window).resize(alignElements);
 
+  preloadAudio();
+
   $(document).keyup(function(e) {
     if (gs.mode == 'titles') return;
     switch(e.which) {
@@ -63,12 +65,14 @@ $(document).ready(function(){
         case 83: // s
         case 40: // down
           gs.activeBtn = !gs.activeBtn;
+          playSound('select');
           break;
         case 13: // return
         case 32: // space
         case 67: // c
         case 78: // n
-          if (gs.activeBtn == 1) startGame();
+          if (gs.activeBtn == 1) setTimeout(startGame,800);
+          playSound('start');
           break;
         default:
           break;
@@ -131,7 +135,6 @@ function startGame() {
   if (titleInterval) clearInterval(titleInterval);
   if (gameInterval) clearInterval(gameInterval);
 
-  $('#stats').show();
   $('.titleScreen').hide();
 
   gs = {
@@ -143,6 +146,7 @@ function startGame() {
     validConnection: [false, false],
     stars: [],
     meteors: {},
+    explosions: [],
     playerVector: [[0,0], [0,0]],
     heldKeys: new Set(),
     startTime: Date.now(),
@@ -171,6 +175,8 @@ function startGame() {
     update();
     draw();
   }, 15);
+
+  setTimeout(()=>$('#stats').show(), 30);
 }
 
 function endGame() {
@@ -333,6 +339,32 @@ function generateMeteorPoints() {
   }
 
   return points;
+}
+
+function addExplosion(x,y) {
+  playSound('explosion');
+
+  const newExplosion = {
+    fragments: []
+  }
+
+  for (let i = 0; i < 6+randInt(4); i++) {
+   const newFragment = {};
+   const angle = randFloat(Math.PI*2);
+
+   newFragment.x = x;
+   newFragment.y = y;
+   newFragment.dx = 1.6*Math.cos(angle);
+   newFragment.dy = 1.6*Math.sin(angle);
+   newFragment.color = `rgb(${143+randInt(30)},
+                            ${112+randInt(30)},
+                            ${86+randInt(30)})`;
+   newFragment.size = 0.5+randFloat(.2)
+   newFragment.points = generateMeteorPoints();
+
+   newExplosion.fragments.push(newFragment);
+  }
+  gs.explosions.push(newExplosion);
 }
 
 function selectWithPlayer(player) {
@@ -528,7 +560,9 @@ function updateMeteors() {
     const dist = distToCenter(...getMeteorCenter(m));
     if (dist < earthRadius+meteorSize) {
       gs.shakeEarth = Date.now();
+
       delete(gs.meteors[k]);
+      addExplosion(m.x, m.y);
 
       gs.hits += 1;
       updateHealth();
@@ -536,7 +570,7 @@ function updateMeteors() {
       if (gs.hits == 3) setTimeout(()=> {
         clearInterval(gameInterval);
         alert('Game over :(');
-        startGame();
+        endGame();
       }, 400);
     }
 
@@ -548,7 +582,10 @@ function updateMeteors() {
       const dist = distToLine(c.p1, c.p2, getMeteorCenter(m));
       if (dist < meteorSize) {
         removeConnection(y);
+
         delete(gs.meteors[k]);
+        addExplosion(m.x, m.y);
+
         gs.meteorsStopped += 1;
         updateMeteorsStopped();
       }
@@ -570,6 +607,19 @@ function updateMeteors() {
     gs.meteorFrequency = Math.max(gs.meteorFrequency-.5, 2);
     gs.lastAccelerateTime = Date.now();
   }
+}
+
+function updateExplosions() {
+  gs.explosions = gs.explosions.filter(e=>{
+    let exploding = true;
+    e.fragments.filter(f=>{
+      f.x += f.dx;
+      f.y += f.dy;
+      f.size -= 0.02;
+      if (f.size < 0) exploding = false;
+    });
+    if (exploding) return e;
+  });
 }
 
 function updateTimer() {
@@ -600,6 +650,7 @@ function updateButtons() {
 function update() {
   updateSatellites();
   updateMeteors();
+  updateExplosions();
   updatePlayers();
   updateTimer();
 }
@@ -614,6 +665,7 @@ function draw() {
   drawSatellites();
   drawConnections();
   drawMeteors();
+  drawExplosions();
   drawPlayers();
 }
 
@@ -641,7 +693,7 @@ function drawLogo() {
   const radius = 205+15*Math.sin(elapsed/1.5);
   const length = 385;
   const rotation = 3*Math.PI/10+elapsed/10;
-  const weight = 6;
+  const weight = 5.5;
 
   let colors = satelliteTypes.map(k=>k.color);
   colors.push(...colors);
@@ -740,6 +792,30 @@ function getMeteorCenter(m) {
   return [x,y];
 }
 
+function drawExplosions() {
+  gs.explosions.map(e=>{
+    e.fragments.map(f=>drawFragment(f));
+  });
+}
+
+function drawFragment(f) {
+  ctx.fillStyle = f.color;
+  ctx.beginPath();
+
+  for (let i = 0; i < f.points.length; i++) {
+    const r = f.points[i][0]*f.size;
+    const theta = f.points[i][1];
+    const x = f.x+r*Math.cos(theta);
+    const y = f.y+r*Math.sin(theta);
+
+    if (i == 0) ctx.moveTo(x,y);
+    else ctx.lineTo(x,y);
+  }
+
+  ctx.closePath();
+  ctx.fill();
+}
+
 function drawSatellites() {
   const newHighlighted = [-1,-1];
   const minDist = [17,17];
@@ -756,10 +832,7 @@ function drawSatellites() {
       drawPolygon(ctx, s.x, s.y, s.type.sides, satelliteSize+2,
                   {color:'white', weight:3, style:'stroke'});
 
-    } else if (isConnected(k)){
-      drawPolygon(ctx, s.x, s.y, s.type.sides, satelliteSize+2,
-                  {color:s.type.color, style:'fill'});
-    } else {
+    } else if (!isConnected(k)){
       let highlight = false;
       for (let i = 0; i < 2; i++) {
         const pType = getPlayerType(i);
@@ -782,6 +855,14 @@ function drawSatellites() {
     }
 
   });
+
+  // draw connected satellites last
+  gs.connected.forEach(id=>{
+    const s = gs.satellites[id];
+    drawPolygon(ctx, s.x, s.y, s.type.sides, satelliteSize+2,
+               {color:s.type.color, style:'fill'});
+  });
+
   gs.highlighted = newHighlighted;
 }
 
@@ -910,4 +991,34 @@ function drawPlayer(x, y, player, color) {
   ctx.fill();
 
   ctx.restore();
+}
+
+// Audio functions
+
+function preloadAudio() {
+  sounds = {}
+
+  sounds.select = new Audio('./sound/select_btn.flac');
+  sounds.select.currentTime = 0.03;
+  sounds.select.playbackRate = 1.2;
+  sounds.select.volume = 0.2;
+
+  sounds.start = new Audio('./sound/start_game.wav');
+  sounds.start.volume = 0.7;
+
+  sounds.explosion = new Audio('./sound/explosion.wav');
+  sounds.explosion.currentTime = 0.15;
+  sounds.explosion.volume = 0.2;
+  sounds.explosion.playbackRate = 2.5;
+
+  Object.keys(sounds).map(k=>sounds[k].preload='auto');
+}
+
+function playSound(sound) {
+  const s = sounds[sound];
+  if (s) {
+    s.pause();
+    s.currentTime = 0;
+    s.play();
+  }
 }
