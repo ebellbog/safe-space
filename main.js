@@ -13,19 +13,20 @@ const satelliteTypes = [
    sides: 20},
 ]
 
-const satelliteDensity = 6; // inversely proportional
-const satelliteSize = 8;
-const weight = 1.75;
+const satelliteDensity = 8; // inversely proportional
+const satelliteSize = 14;
+const weight = 3;
 const rspeed = .5;
 
-const playerSize = 30;
-const playerMargin = 11;
-const innerMargin = playerMargin-4;
+const playerSize = 50;
+const playerMargin = 18;
+const innerMargin = playerMargin-8;
 
-const meteorSize = 14;
+const meteorSize = 26;
 const maxMeteors = 6;
+const fragmentSize = .6
 
-const earthRadius = 60;
+const earthRadius = 105;
 
 const starCount = 120;
 
@@ -48,9 +49,11 @@ $(document).ready(function(){
     if (gs.mode == 'titles') return;
     switch(e.which) {
       case 67: // c
+      case 86: // v
         gs.selected[0] = -1;
         break;
       case 78: // n
+      case 77: // m
         gs.selected[1] = -1;
       default:
         gs.heldKeys.delete(e.which);
@@ -84,16 +87,12 @@ $(document).ready(function(){
 
     switch(e.which) {
       case 67: // c
+      case 86: // v
         selectWithPlayer(0);
         break;
-      case 86: // v
-        gs.selected[0] = -1;
-        break;
       case 78: // n
-        selectWithPlayer(1);
-        break;
       case 77: // m
-        gs.selected[1] = -1;
+        selectWithPlayer(1);
         break;
       case 32: // space
         if (!(gs.selected[0] == -1 || gs.selected[1] ==  -1)) {
@@ -153,7 +152,7 @@ function startGame() {
     lastAccelerateTime: Date.now(),
     lastMeteorTime: Date.now(),
     nextMeteor: 5000,
-    meteorSpeed: .4,
+    meteorSpeed: .7,
     meteorFrequency: 6,
     meteorsStopped: 0,
     shakeEarth: 0,
@@ -161,9 +160,9 @@ function startGame() {
     mode: 'game'
   }
 
-  const playerMargin = 60;
-  gs.playerPos = [[playerMargin, cHeight-playerMargin],
-                  [cWidth-playerMargin, cHeight-playerMargin]];
+  const placementMargin = 120;
+  gs.playerPos = [[placementMargin, cHeight-placementMargin],
+                  [cWidth-placementMargin, cHeight-placementMargin]];
 
   setupSatellites();
   setupStars();
@@ -208,7 +207,7 @@ function setupStars() {
   gs.stars = [];
   for (let i = 0; i < starCount; i++) {
     const newStar = {};
-    newStar.size = randInt(2)+1;
+    newStar.size = randFloat(3)+1.5;
     newStar.twinkle = Math.random();
 
     let dist = 0;
@@ -222,12 +221,12 @@ function setupStars() {
 }
 
 function setupSatellites() {
-  const space = 10;
+  const space = 17;
   const diagonalRadius = Math.sqrt(Math.pow(cWidth/2,2)+
                               Math.pow(cHeight/2,2));
   const squareRadius = Math.min(cWidth, cHeight)/2;
   const maxRadius = (squareRadius-earthRadius-space)*.93;
-  const orbitSpace = satelliteSize*1.75;
+  const orbitSpace = satelliteSize*2;
   const indexRange = maxRadius/orbitSpace;
 
   gs.satellites = {}
@@ -331,7 +330,7 @@ function generateMeteorPoints() {
 
   let theta = 0, r;
   while (theta < Math.PI*2) {
-    r = meteorSize+randOffset(4);
+    r = meteorSize+randOffset(7);
     theta += .1+randFloat(2*Math.PI/count-.1);
     theta = Math.min(theta, Math.PI*2);
 
@@ -342,24 +341,22 @@ function generateMeteorPoints() {
 }
 
 function addExplosion(x,y) {
-  playSound('explosion');
-
   const newExplosion = {
     fragments: []
   }
 
-  for (let i = 0; i < 6+randInt(4); i++) {
+  for (let i = 0; i < 5+randInt(4); i++) {
    const newFragment = {};
    const angle = randFloat(Math.PI*2);
 
    newFragment.x = x;
    newFragment.y = y;
-   newFragment.dx = 1.6*Math.cos(angle);
-   newFragment.dy = 1.6*Math.sin(angle);
+   newFragment.dx = 2.8*Math.cos(angle);
+   newFragment.dy = 2.8*Math.sin(angle);
    newFragment.color = `rgb(${143+randInt(30)},
                             ${112+randInt(30)},
                             ${86+randInt(30)})`;
-   newFragment.size = 0.5+randFloat(.2)
+   newFragment.size = fragmentSize+randFloat(.3)
    newFragment.points = generateMeteorPoints();
 
    newExplosion.fragments.push(newFragment);
@@ -375,8 +372,6 @@ function selectWithPlayer(player) {
       const hType = gs.satellites[gs.highlighted[player]].type;
       if (hType == pType) {
         gs.selected[player] = gs.highlighted[player];
-        //createConnection(gs.highlighted[player],
-        //                 gs.selected[otherPlayer(player)]);
       }
     } else {
       gs.selected[player] = gs.highlighted[player];
@@ -475,9 +470,9 @@ function updateSatellites() {
 }
 
 function updatePlayers() {
-  const acc = .3;
-  const dec = .85;
-  const max = 6;
+  const acc = .4;
+  const dec = .9;
+  const max = 10;
   let doAcc = [false, false];
 
   if (gs.heldKeys.size > 0) {
@@ -563,6 +558,7 @@ function updateMeteors() {
 
       delete(gs.meteors[k]);
       addExplosion(m.x, m.y);
+      playSound('explosion');
 
       gs.hits += 1;
       updateHealth();
@@ -585,6 +581,7 @@ function updateMeteors() {
 
         delete(gs.meteors[k]);
         addExplosion(m.x, m.y);
+        playSound('zap');
 
         gs.meteorsStopped += 1;
         updateMeteorsStopped();
@@ -603,7 +600,7 @@ function updateMeteors() {
 
 
   if ((Date.now()-gs.lastAccelerateTime)/1000 > 25) {
-    gs.meteorSpeed = Math.min(gs.meteorSpeed+.1, 1.5);
+    gs.meteorSpeed = Math.min(gs.meteorSpeed+.1, 2.7);
     gs.meteorFrequency = Math.max(gs.meteorFrequency-.5, 2);
     gs.lastAccelerateTime = Date.now();
   }
@@ -690,10 +687,10 @@ function drawEarth() {
 
 function drawLogo() {
   const elapsed = (Date.now()-gs.startTime)/1000;
-  const radius = 205+15*Math.sin(elapsed/1.5);
-  const length = 385;
+  const radius = 365+27*Math.sin(elapsed/1.5);
+  const length = 675;
   const rotation = 3*Math.PI/10+elapsed/10;
-  const weight = 5.5;
+  const weight = 8.5;
 
   let colors = satelliteTypes.map(k=>k.color);
   colors.push(...colors);
@@ -751,10 +748,10 @@ function drawMeteor(m) {
 
   ctx.fillStyle = gradient;
   ctx.strokeStyle = m.type.color;
-  ctx.lineWidth = .75;
+  ctx.lineWidth = 1.4;
 
   ctx.shadowColor = m.type.color;
-  ctx.shadowBlur = 10;
+  ctx.shadowBlur = 18;
 
   ctx.beginPath();
   ctx.moveTo(...getMeteorCoord(m,0));
@@ -818,7 +815,7 @@ function drawFragment(f) {
 
 function drawSatellites() {
   const newHighlighted = [-1,-1];
-  const minDist = [17,17];
+  const minDist = [30,30];
   Object.keys(gs.satellites).map(k=>{
     const s = gs.satellites[k];
     if (s.r && s.theta) {
@@ -827,10 +824,10 @@ function drawSatellites() {
     }
 
     if (isSelected(k)) {
-      drawPolygon(ctx, s.x, s.y, s.type.sides, satelliteSize+1,
+      drawPolygon(ctx, s.x, s.y, s.type.sides, satelliteSize+1.75,
                   {color:s.type.color, style:'fill'});
-      drawPolygon(ctx, s.x, s.y, s.type.sides, satelliteSize+2,
-                  {color:'white', weight:3, style:'stroke'});
+      drawPolygon(ctx, s.x, s.y, s.type.sides, satelliteSize+3.5,
+                  {color:'white', weight:4, style:'stroke'});
 
     } else if (!isConnected(k)){
       let highlight = false;
@@ -848,7 +845,7 @@ function drawSatellites() {
       }
 
       const style =  highlight ? 'fill' : 'stroke';
-      const expand = highlight ? 3 : 0;
+      const expand = highlight ? 4.75 : 0;
 
       drawPolygon(ctx, s.x, s.y, s.type.sides, satelliteSize+expand,
                   {color:s.type.color, weight:weight, style:style});
@@ -859,7 +856,7 @@ function drawSatellites() {
   // draw connected satellites last
   gs.connected.forEach(id=>{
     const s = gs.satellites[id];
-    drawPolygon(ctx, s.x, s.y, s.type.sides, satelliteSize+2,
+    drawPolygon(ctx, s.x, s.y, s.type.sides, satelliteSize+3.7,
                {color:s.type.color, style:'fill'});
   });
 
@@ -882,7 +879,7 @@ function drawConnections() {
     gradient.addColorStop(1, t.type.color);
 
     ctx.strokeStyle = gradient;
-    ctx.lineWidth = 4;
+    ctx.lineWidth = 8;
     ctx.beginPath();
     ctx.moveTo(s.x, s.y);
     ctx.lineTo(t.x, t.y);
@@ -897,16 +894,16 @@ function drawConnections() {
       const valid = !crossesEarth([s.x,s.y],gs.playerPos[otherPlayer(i)]);
       gs.validConnection[otherPlayer(i)] = valid;
 
-      const width = 2000/getDist([s.x,s.y], gs.playerPos[otherPlayer(i)]);
+      const width = 4000/getDist([s.x,s.y], gs.playerPos[otherPlayer(i)]);
 
       if (valid) {
-        ctx.lineWidth = Math.min(Math.max(width, .3), 7);
+        ctx.lineWidth = Math.min(Math.max(width, 1), 13);
         ctx.setLineDash([]);
         ctx.globalAlpha = 0.5;
       }
       else {
-        ctx.lineWidth = Math.min(Math.max(width, 4), 6);
-        ctx.setLineDash([1,10]);
+        ctx.lineWidth = Math.min(Math.max(width, 5), 8);
+        ctx.setLineDash([1.75,15]);
         ctx.globalAlpha = 0.8;
       }
 
@@ -920,7 +917,7 @@ function drawConnections() {
   ctx.restore();
 
   // draw existing connections
-  ctx.lineWidth = 4; //TODO: width based on distance?
+  ctx.lineWidth = 8; //TODO: width based on distance?
   Object.keys(gs.connections).map(k=>{
     const cnctn = gs.connections[k];
     ctx.strokeStyle = cnctn.color;
@@ -950,7 +947,7 @@ function drawPlayer(x, y, player, color) {
     ctx.fillStyle =  gs.satellites[s].type.color;
     ctx.shadowColor = 'black';
   }
-  ctx.shadowBlur = 8;
+  ctx.shadowBlur = 12;
 
   const topLeft = [x-playerSize/2, y-playerSize/2+playerMargin];
   const topRight = [x+playerSize/2, y-playerSize/2+playerMargin];
@@ -1010,6 +1007,11 @@ function preloadAudio() {
   sounds.explosion.currentTime = 0.15;
   sounds.explosion.volume = 0.2;
   sounds.explosion.playbackRate = 2.5;
+
+  sounds.zap = new Audio('./sound/zap.mp3');
+  sounds.zap.currentTime = 0.1;
+  sounds.zap.playbackRate = 3;
+  sounds.zap.volume = 0.2;
 
   Object.keys(sounds).map(k=>sounds[k].preload='auto');
 }
