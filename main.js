@@ -697,7 +697,7 @@ function drawMeteor(m) {
   gradient.addColorStop(0.1, "#b39880");
   gradient.addColorStop(1, "#604b39");
 
-  ctx.fillStyle = gradient;//'#a98c70';
+  ctx.fillStyle = gradient;
   ctx.strokeStyle = m.type.color;
   ctx.lineWidth = .75;
 
@@ -714,6 +714,12 @@ function drawMeteor(m) {
   ctx.fill();
   ctx.stroke();
   ctx.restore();
+
+  drawPolygon(ctx,
+              center[0], center[1],
+              m.type.sides, meteorSize/1.7,
+              {color:'rgba(96,75,57,0.65)',
+               style:'fill', rotation:m.rotation});
 }
 
 function getMeteorCoord(m,i) {
