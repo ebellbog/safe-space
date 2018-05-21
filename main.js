@@ -43,6 +43,7 @@ $(document).ready(function(){
   $(window).resize(alignElements);
 
   $(document).keyup(function(e) {
+    if (gs.mode == 'titles') return;
     switch(e.which) {
       case 67: // c
         gs.selected[0] = -1;
@@ -55,6 +56,28 @@ $(document).ready(function(){
   });
 
   $(document).keydown(function(e) {
+    if (gs.mode == 'titles') {
+      switch(e.which) {
+        case 87: // w
+        case 38: // up
+        case 83: // s
+        case 40: // down
+          gs.activeBtn = !gs.activeBtn;
+          break;
+        case 13: // return
+        case 32: // space
+        case 67: // c
+        case 78: // n
+          if (gs.activeBtn == 1) startGame();
+          break;
+        default:
+          break;
+      }
+
+      updateButtons();
+      return;
+    }
+
     switch(e.which) {
       case 67: // c
         selectWithPlayer(0);
@@ -68,13 +91,13 @@ $(document).ready(function(){
       case 77: // m
         gs.selected[1] = -1;
         break;
-      case 32:// space
+      case 32: // space
         if (!(gs.selected[0] == -1 || gs.selected[1] ==  -1)) {
           createConnection(gs.selected[0], gs.selected[1]);
         }
         break;
       case 13: // return
-        startGame();
+        endGame();
         break;
       default:
         gs.heldKeys.add(e.which);
@@ -87,8 +110,21 @@ $(document).ready(function(){
 
 function alignElements() {
   const $game = $('#game');
-  $('#stats').css('left', $game.offset().left)
+  const scale = $game.height()/768;
+
+  $('#text').css('transform',
+                  `translate(-50%,-50%) scale(${scale})`);
+  $('#stats').css('transform',`translate(-50%,-50%)
+                               scale(${scale})
+                               translate(50%,50%)`)
+             .css('margin', `${15*scale}px`)
+             .css('left', $game.offset().left)
              .css('top', $game.offset().top);
+  $('#credit').css('transform',`translate(50%,50%)
+                                scale(${scale})
+                                translate(-50%,-50%)`)
+              .css('margin', `${10*scale}px`)
+              .css('right', $game.offset().left);
 }
 
 function startGame() {
@@ -117,7 +153,8 @@ function startGame() {
     meteorFrequency: 6,
     meteorsStopped: 0,
     shakeEarth: 0,
-    hits: 0
+    hits: 0,
+    mode: 'game'
   }
 
   const playerMargin = 60;
@@ -136,14 +173,24 @@ function startGame() {
   }, 15);
 }
 
+function endGame() {
+  clearInterval(gameInterval);
+  startTitles();
+}
+
 function startTitles() {
+  $('#stats').hide();
+  $('.titleScreen').show();
+
   gs = {
     stars: [],
     startTime: Date.now(),
-    heldKeys: new Set()
+    activeBtn: 0,
+    mode: 'titles',
   }
 
   setupStars();
+  updateButtons();
   titleInterval = setInterval(()=>{
     ctx.clearRect(0,0,cWidth,cHeight);
     drawStars();
@@ -541,6 +588,13 @@ function updateHealth() {
 
 function updateMeteorsStopped() {
   $('#stopped').html(gs.meteorsStopped);
+}
+
+function updateButtons() {
+  for (let i = 0; i < 2; i++) {
+    let $btn = $(`#buttons :nth-child(${i+1})`);
+    $btn.toggleClass('active',i == gs.activeBtn);
+  }
 }
 
 function update() {
