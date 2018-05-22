@@ -1,3 +1,21 @@
+@font-face {
+  font-family: 'Exo 2';
+  src: url('./fonts/Exo2-ExtraLight.ttf');
+  font-weight: 200;
+}
+
+@font-face {
+  font-family: 'Exo 2';
+  src: url('./fonts/Exo2-Regular.ttf');
+  font-weight: 400;
+}
+
+@font-face {
+  font-family: 'Exo 2';
+  src: url('./fonts/Exo2-SemiBold.ttf');
+  font-weight: 600;
+}
+
 body {
   font-family: 'Exo 2', sans-serif;
   background-color: #888;
