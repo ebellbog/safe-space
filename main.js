@@ -46,7 +46,7 @@ $(document).ready(function(){
   preloadAudio();
 
   $(document).keyup(function(e) {
-    if (gs.mode == 'titles') return;
+    if (gs.mode != 'game') return;
     switch(e.which) {
       case 67: // c
       case 86: // v
@@ -61,6 +61,11 @@ $(document).ready(function(){
   });
 
   $(document).keydown(function(e) {
+    if (gs.mode == 'gameover') {
+      startTitles();
+      return;
+    }
+
     if (gs.mode == 'titles') {
       switch(e.which) {
         case 87: // w
@@ -115,8 +120,8 @@ function alignElements() {
   const $game = $('#game');
   const scale = $game.height()/768;
 
-  $('#text').css('transform',
-                  `translate(-50%,-50%) scale(${scale})`);
+  $('#text, #gameover').css('transform',
+                            `translate(-50%,-50%) scale(${scale})`);
   $('#stats').css('transform',`translate(-50%,-50%)
                                scale(${scale})
                                translate(50%,50%)`)
@@ -180,12 +185,18 @@ function startGame() {
 
 function endGame() {
   clearInterval(gameInterval);
-  startTitles();
+  $('#stats').hide();
+  $('#game').css('filter','blur(5px)');
+
+  $('#gameover div:nth-child(2)').html($('#timer').html());
+  $('#gameover').show();
+  gs.mode = 'gameover';
 }
 
 function startTitles() {
-  $('#stats').hide();
+  $('#gameover').hide();
   $('.titleScreen').show();
+  $('#game').css('filter','none');
 
   gs = {
     stars: [],
@@ -565,9 +576,8 @@ function updateMeteors() {
 
       if (gs.hits == 3) setTimeout(()=> {
         clearInterval(gameInterval);
-        alert('Game over :(');
         endGame();
-      }, 400);
+      }, 800);
     }
 
     // test for collision with line
@@ -879,7 +889,7 @@ function drawConnections() {
     gradient.addColorStop(1, t.type.color);
 
     ctx.strokeStyle = gradient;
-    ctx.lineWidth = 8;
+    ctx.lineWidth = 7;
     ctx.beginPath();
     ctx.moveTo(s.x, s.y);
     ctx.lineTo(t.x, t.y);
@@ -894,16 +904,16 @@ function drawConnections() {
       const valid = !crossesEarth([s.x,s.y],gs.playerPos[otherPlayer(i)]);
       gs.validConnection[otherPlayer(i)] = valid;
 
-      const width = 4000/getDist([s.x,s.y], gs.playerPos[otherPlayer(i)]);
+      const width = 4800/getDist([s.x,s.y], gs.playerPos[otherPlayer(i)]);
 
       if (valid) {
-        ctx.lineWidth = Math.min(Math.max(width, 1), 13);
+        ctx.lineWidth = Math.min(Math.max(width, 4.5), 13);
         ctx.setLineDash([]);
         ctx.globalAlpha = 0.5;
       }
       else {
-        ctx.lineWidth = Math.min(Math.max(width, 5), 8);
-        ctx.setLineDash([1.75,15]);
+        ctx.lineWidth = Math.min(Math.max(width, 6), 8);
+        ctx.setLineDash([1,15]);
         ctx.globalAlpha = 0.8;
       }
 
@@ -917,7 +927,7 @@ function drawConnections() {
   ctx.restore();
 
   // draw existing connections
-  ctx.lineWidth = 8; //TODO: width based on distance?
+  ctx.lineWidth = 7; //TODO: width based on distance?
   Object.keys(gs.connections).map(k=>{
     const cnctn = gs.connections[k];
     ctx.strokeStyle = cnctn.color;
