@@ -158,7 +158,7 @@ function startGame() {
     lastAccelerateTime: Date.now(),
     lastMeteorTime: Date.now(),
     nextMeteor: 5000,
-    meteorSpeed: .7,
+    meteorSpeed: .6,
     meteorFrequency: 6,
     meteorsStopped: 0,
     shakeEarth: 0,
@@ -586,11 +586,11 @@ function updateMeteors() {
     // test for collision with line
     Object.keys(gs.connections).map(y=>{
       const c = gs.connections[y];
-      if (c.color != m.type.color) return;
+      if (c.color != m.type.color || c.phaseOut) return;
 
       const dist = distToLine(c.p1, c.p2, getMeteorCenter(m));
       if (dist < meteorSize) {
-        removeConnection(y);
+        c.phaseOut = Date.now();
 
         delete(gs.meteors[k]);
         addExplosion(m.x, m.y);
@@ -611,7 +611,7 @@ function updateMeteors() {
                      randInt(gs.meteorFrequency*2000);
   }
 
-
+  // increase difficulty every 25 sec
   if ((Date.now()-gs.lastAccelerateTime)/1000 > 25) {
     gs.meteorSpeed = Math.min(gs.meteorSpeed+.1, 2.7);
     gs.meteorFrequency = Math.max(gs.meteorFrequency-.5, 2);
@@ -932,12 +932,28 @@ function drawConnections() {
   // draw existing connections
   ctx.lineWidth = 7; //TODO: width based on distance?
   Object.keys(gs.connections).map(k=>{
+    ctx.save();
     const cnctn = gs.connections[k];
+    if (cnctn.phaseOut) {
+      const phaseDuration = 0.6;
+      const elapsed = (Date.now()-cnctn.phaseOut)/1000;
+
+      if (elapsed > phaseDuration) {
+        removeConnection(k);
+        return;
+      }
+
+      ctx.setLineDash([20-elapsed*(20/phaseDuration),
+                       elapsed*(20/phaseDuration)]);
+      ctx.lineWidth = 7-elapsed*(7/phaseDuration);
+    }
+
     ctx.strokeStyle = cnctn.color;
     ctx.beginPath();
     ctx.moveTo(...cnctn.p1);
     ctx.lineTo(...cnctn.p2);
     ctx.stroke();
+    ctx.restore();
   });
 }
 
@@ -1018,7 +1034,7 @@ function preloadAudio() {
 
   sounds.explosion = new Audio('./sound/explosion.wav');
   sounds.explosion.skipTo = 0.15;
-  sounds.explosion.volume = 0.2;
+  sounds.explosion.volume = 0.3;
   sounds.explosion.playbackRate = 2.5;
 
   sounds.zap = new Audio('./sound/zap.mp3');
@@ -1027,10 +1043,10 @@ function preloadAudio() {
   sounds.zap.volume = 0.2;
 
   sounds.selectS1 = new Audio('./sound/laser.wav');
-  sounds.selectS1.volume = 0.3;
+  sounds.selectS1.volume = 0.2;
 
   sounds.selectS2 = new Audio('./sound/laser_reverse.wav');
-  sounds.selectS2.volume = 0.3;
+  sounds.selectS2.volume = 0.2;
   sounds.selectS2.playbackRate = 1.5;
 
   sounds.connect = new Audio('./sound/zap_reverse.mp3');
