@@ -62,7 +62,13 @@ $(document).ready(function(){
 
   $(document).keydown(function(e) {
     if (gs.mode == 'gameover') {
-      startTitles();
+      if (Date.now()-gs.endTime > 1200) startTitles();
+      return;
+    }
+
+    if (gs.mode == 'howto') {
+      $('.overlay, #howto').hide();
+      gs.mode = 'titles';
       return;
     }
 
@@ -80,6 +86,10 @@ $(document).ready(function(){
         case 67: // c
         case 78: // n
           if (gs.activeBtn == 1) setTimeout(startGame,800);
+          else {
+            $('.overlay, #howto').show();
+            gs.mode = 'howto';
+          }
           playSound('start');
           break;
         default:
@@ -121,8 +131,8 @@ function alignElements() {
   const $game = $('#game');
   const scale = $game.height()/768;
 
-  $('#text, #gameover').css('transform',
-                            `translate(-50%,-50%) scale(${scale})`);
+  $('#text, #gameover, #howto')
+    .css('transform', `translate(-50%,-50%) scale(${scale})`);
   $('#stats').css('transform',`translate(-50%,-50%)
                                scale(${scale})
                                translate(50%,50%)`)
@@ -189,7 +199,9 @@ function endGame() {
 
   $('#gameover div:nth-child(2)').html($('#timer').html());
   $('#gameover').show();
+
   gs.mode = 'gameover';
+  gs.endTime = Date.now();
 }
 
 function startTitles() {

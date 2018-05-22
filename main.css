@@ -18,7 +18,7 @@
 
 body {
   font-family: 'Exo 2', sans-serif;
-  background-color: #888;
+  background-color: #444;
   width: 100%;
   margin: 0;
   padding: 0;
@@ -176,4 +176,111 @@ body {
   font-size: 60px;
   font-weight: 600;
   margin-top: 25px;
+}
+
+.overlay {
+  display: none;
+  width: 100%;
+  height: 100vh;
+  position: absolute;
+  left: 0;
+  top: 0;
+}
+
+#matte {
+  background-color: #222;
+  z-index: 2;
+}
+
+#gradient {
+  background: radial-gradient(#aaa, #222);
+  filter: blur(5px);
+  z-index: 3;
+}
+
+#howto {
+  display: none;
+  z-index: 4;
+  height: 768px;
+  width: 1365px;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+}
+
+#howto-title {
+  color: white;
+  font-size: 60px;
+  font-weight: 600;
+  text-shadow: 0 0 15px #ccc;
+  text-align: center;
+  height: 100px;
+}
+
+td#instructions-wrapper {
+  height: 100%;
+  padding: 10px 0 10px 50px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-around;
+}
+
+.howto-instruction {
+  width: 615px;
+}
+
+.howto-instruction div {
+  display: inline-block;
+}
+
+.howto-instruction:nth-child(1) .instruction-number {
+  color: tomato;
+}
+.howto-instruction:nth-child(2) .instruction-number {
+  color: yellow;
+}
+.howto-instruction:nth-child(3) .instruction-number {
+  color: limegreen;
+}
+.howto-instruction:nth-child(4) .instruction-number {
+  color: cyan;
+}
+.howto-instruction:nth-child(5) .instruction-number {
+  color: blueviolet;
+}
+
+.instruction-number {
+  font-size: 64px;
+  line-height: 58px;
+  font-weight: 400;
+  text-shadow: 1px 1px 10px #222;
+  vertical-align: top;
+  margin: 0;
+  width: 50px;
+}
+
+.instruction-contents {
+  color: white;
+  font-size: 26px;
+  font-weight: 200;
+  text-shadow: 1px 1px 2px #333;
+  width: 80%;
+}
+
+.instruction-contents .bold {
+  font-weight: 600;
+}
+
+td#screenshot-wrapper {
+  width: 60%;
+}
+
+.screenshot {
+  display: inline-block;
+  width: 300px;
+  height: 225px;
+  margin: 10px;
+  background-color: white;
+  border-radius: 15px;
 }
