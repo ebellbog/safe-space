@@ -129,9 +129,7 @@ function alignElements() {
              .css('margin', `${15*scale}px`)
              .css('left', $game.offset().left)
              .css('top', $game.offset().top);
-  $('#credit').css('transform',`translate(50%,50%)
-                                scale(${scale})
-                                translate(-50%,-50%)`)
+  $('#credit').css('font-size', `${20*scale}px`)
               .css('margin', `${10*scale}px`)
               .css('right', $game.offset().left);
 }
@@ -301,7 +299,7 @@ function addMeteor() {
   newMeteor.points = generateMeteorPoints();
   newMeteor.type = satelliteTypes[randInt(5)];
   newMeteor.rotation = randFloat(2*Math.PI);
-  newMeteor.offset = randInt(meteorSize);
+  newMeteor.offset = randInt(meteorSize/2);
 
   switch(randInt(4)) {
     case 0: // left side
@@ -907,19 +905,16 @@ function drawConnections() {
       const valid = !crossesEarth([s.x,s.y],gs.playerPos[otherPlayer(i)]);
       gs.validConnection[otherPlayer(i)] = valid;
 
-      const width = 4800/getDist([s.x,s.y], gs.playerPos[otherPlayer(i)]);
-
       if (valid) {
-        ctx.lineWidth = Math.min(Math.max(width, 4.5), 13);
         ctx.setLineDash([]);
         ctx.globalAlpha = 0.5;
       }
       else {
-        ctx.lineWidth = Math.min(Math.max(width, 6), 8);
-        ctx.setLineDash([1,15]);
+        ctx.setLineDash([1,16]);
         ctx.globalAlpha = 0.8;
       }
 
+      ctx.lineWidth = 7;
       ctx.beginPath();
       ctx.moveTo(s.x, s.y);
       ctx.lineTo(...gs.playerPos[otherPlayer(i)]);
@@ -930,7 +925,7 @@ function drawConnections() {
   ctx.restore();
 
   // draw existing connections
-  ctx.lineWidth = 7; //TODO: width based on distance?
+  ctx.lineWidth = 7;
   Object.keys(gs.connections).map(k=>{
     ctx.save();
     const cnctn = gs.connections[k];
