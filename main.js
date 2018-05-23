@@ -592,7 +592,7 @@ function updateMeteors() {
       if (gs.hits == 3) setTimeout(()=> {
         clearInterval(gameInterval);
         endGame();
-      }, 800);
+      }, 1500);
     }
 
     // test for collision with line
@@ -625,8 +625,8 @@ function updateMeteors() {
 
   // increase difficulty every 25 sec
   if ((Date.now()-gs.lastAccelerateTime)/1000 > 25) {
-    gs.meteorSpeed = Math.min(gs.meteorSpeed+.1, 2.7);
-    gs.meteorFrequency = Math.max(gs.meteorFrequency-.5, 2);
+    gs.meteorSpeed = Math.min(gs.meteorSpeed+.1, 2.3);
+    gs.meteorFrequency = Math.max(gs.meteorFrequency-.5, 1);
     gs.lastAccelerateTime = Date.now();
   }
 }
@@ -701,8 +701,25 @@ function drawEarth() {
     }
   }
 
+  let src = "./img/";
+  switch(gs.hits) {
+    case 0:
+      src += "earth.png";
+      break;
+    case 1:
+      src += "cracked-earth.png";
+      break;
+    case 2:
+      src += "cracked-earth2.png"
+      break;
+    default:
+      src += "broken-earth.png";
+      break;
+  }
+  $('#earth').attr('src', src);
+
   ctx.save();
-  ctx.filter = `sepia(${gs.hits/3})`;
+  ctx.filter = `sepia(${gs.hits/6})`;
   ctx.drawImage($('#earth')[0], cWidth/2-earthRadius+dx,
                                 cHeight/2-earthRadius+dy,
                                 2*earthRadius,
