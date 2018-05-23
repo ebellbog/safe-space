@@ -27,22 +27,19 @@ body {
 
 #game {
   background-color: #444;
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%,-50%);
+  height: 100%;
+}
+
+#player-canvas {
   height: 100%;
   cursor: none;
+  z-index: 4;
 }
 
 #text {
   width: 400px;
   height: 360px;
   padding: 20px;
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%,-50%);
   text-align: center;
   color: white;
 }
@@ -97,6 +94,7 @@ body {
   margin: 15px;
   border-radius: 10px;
   display: none;
+  z-index: 3;
 }
 
 #stats h3 {
@@ -138,10 +136,6 @@ body {
 
 #gameover {
   display: none;
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%,-50%);
   width: 600px;
   height: 300px;
   background-color: rgba(30,30,30,0.9);
@@ -150,6 +144,7 @@ body {
   color: white;
   text-align: center;
   padding: 20px;
+  z-index: 5;
 }
 
 #gameover div:nth-child(1) {
@@ -188,6 +183,13 @@ body {
   top: 0;
 }
 
+.centered {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%,-50%);
+}
+
 #matte {
   background-color: #333;
   z-index: 2;
@@ -204,10 +206,6 @@ body {
   z-index: 4;
   height: 768px;
   width: 1365px;
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
 }
 
 #howto-title {

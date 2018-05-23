@@ -36,9 +36,17 @@ let titleInterval, gameInterval;
 
 $(document).ready(function(){
   let $game = $('#game');
-  ctx = $game[0].getContext('2d');
+  gameCtx = $game[0].getContext('2d');
   cWidth = parseInt($game.attr('width'));
   cHeight = parseInt($game.attr('height'));
+
+  let $earthCanvas = $('#earth-canvas');
+  earthCtx = $earthCanvas[0].getContext('2d');
+  eWidth = parseInt($earthCanvas.attr('width'));
+  eHeight = parseInt($earthCanvas.attr('height'));
+
+  let $playerCanvas = $('#player-canvas');
+  playerCtx = $playerCanvas[0].getContext('2d');
 
   alignElements();
   $(window).resize(alignElements);
@@ -130,7 +138,10 @@ $(document).ready(function(){
 function alignElements() {
   const $game = $('#game');
   const scale = $game.height()/768;
+  const earthScale = $game.height()/1080;
 
+  $('#earth-canvas')
+    .css('transform', `translate(-50%,-50%) scale(${earthScale})`);
   $('#text, #gameover, #howto')
     .css('transform', `translate(-50%,-50%) scale(${scale})`);
   $('#stats').css('transform',`translate(-50%,-50%)
@@ -170,6 +181,7 @@ function startGame() {
     meteorFrequency: 6,
     meteorsStopped: 0,
     shakeEarth: 0,
+    redrawEarth: 1,
     hits: 0,
     mode: 'game'
   }
@@ -197,7 +209,7 @@ function endGame() {
   playSound('gameover');
 
   $('#stats').hide();
-  $('#game').css('filter','blur(5px)');
+  $('#game, #earth-canvas, #player-canvas').css('filter','blur(5px)');
 
   $('#gameover div:nth-child(2)').html($('#timer').html());
   $('#gameover').show();
@@ -209,7 +221,7 @@ function endGame() {
 function startTitles() {
   $('#gameover').hide();
   $('.titleScreen').show();
-  $('#game').css('filter','none');
+  $('#game, #earth-canvas, #player-canvas').css('filter','none');
 
   gs = {
     stars: [],
@@ -220,10 +232,13 @@ function startTitles() {
 
   setupStars();
   updateButtons();
+  earthCtx.clearRect(0,0,eWidth,eHeight);
+  playerCtx.clearRect(0,0,cWidth,cHeight);
+
   titleInterval = setInterval(()=>{
-    ctx.clearRect(0,0,cWidth,cHeight);
-    drawStars();
-    drawLogo();
+    gameCtx.clearRect(0,0,cWidth,cHeight);
+    drawStars(gameCtx);
+    drawLogo(gameCtx);
   }, 15);
 }
 
@@ -587,6 +602,7 @@ function updateMeteors() {
       playSound('explosion');
 
       gs.hits += 1;
+      gs.redrawEarth = 1;
       updateHealth();
 
       if (gs.hits == 3) setTimeout(()=> {
@@ -680,54 +696,43 @@ function update() {
 // Draw functions
 
 function draw() {
-  ctx.clearRect(0,0,cWidth,cHeight);
+  gameCtx.clearRect(0,0,cWidth,cHeight);
+  drawStars(gameCtx);
+  drawSatellites(gameCtx);
 
-  drawStars();
-  drawEarth();
-  drawSatellites();
-  drawConnections();
-  drawMeteors();
-  drawExplosions();
-  drawPlayers();
+  drawEarth(); // (using earthCtx)
+
+  playerCtx.clearRect(0,0,cWidth,cHeight);
+  drawConnections(playerCtx);
+  drawMeteors(playerCtx);
+  drawExplosions(playerCtx);
+  drawPlayers(playerCtx);
 }
 
 function drawEarth() {
+  if (gs.redrawEarth <= 0) return;
+  gs.redrawEarth -= 1;
+
   let dx = 0, dy = 0;
-  if (gs.shakeEarth && Date.now()%3==0) {
+  if (gs.shakeEarth) {
+    gs.redrawEarth = 1;
     if (Date.now()-gs.shakeEarth > 300) gs.shakeEarth = 0;
-    else {
-      dx = randOffset(5);
-      dy = randOffset(5);
+    else if (Date.now()%3==0) {
+      dx = randOffset(6);
+      dy = randOffset(6);
     }
   }
 
-  let src = "./img/";
-  switch(gs.hits) {
-    case 0:
-      src += "earth.png";
-      break;
-    case 1:
-      src += "cracked-earth.png";
-      break;
-    case 2:
-      src += "cracked-earth2.png"
-      break;
-    default:
-      src += "broken-earth.png";
-      break;
-  }
-  $('#earth').attr('src', src);
-
-  ctx.save();
-  ctx.filter = `sepia(${gs.hits/6})`;
-  ctx.drawImage($('#earth')[0], Math.floor(cWidth/2)-earthRadius+dx,
-                                Math.floor(cHeight/2)-earthRadius+dy,
-                                2*earthRadius,
-                                2*earthRadius);
-  ctx.restore();
+  earthCtx.clearRect(0,0,eWidth,eHeight);
+  earthCtx.filter = `sepia(${gs.hits/6})`;
+  earthCtx.drawImage($(`#earth${Math.min(gs.hits+1,4)}`)[0],
+      Math.floor(eWidth/2)-earthRadius+dx,
+      Math.floor(eHeight/2)-earthRadius+dy,
+      2*earthRadius,
+      2*earthRadius);
 }
 
-function drawLogo() {
+function drawLogo(ctx) {
   const elapsed = (Date.now()-gs.startTime)/1000;
   const radius = 365+27*Math.sin(elapsed/1.5);
   const length = 675;
@@ -763,7 +768,7 @@ function drawLogo() {
       ${0.75+.25*Math.sin(2*elapsed)})`);
 }
 
-function drawStars() {
+function drawStars(ctx) {
   gs.stars.map(s=>{
     let bri = Math.floor(Math.sin((Date.now()-gs.startTime)/500
               +s.twinkle*100)*75+180);
@@ -774,11 +779,11 @@ function drawStars() {
   });
 }
 
-function drawMeteors() {
-  Object.keys(gs.meteors).map(k=>drawMeteor(gs.meteors[k]));
+function drawMeteors(ctx) {
+  Object.keys(gs.meteors).map(k=>drawMeteor(ctx, gs.meteors[k]));
 }
 
-function drawMeteor(m) {
+function drawMeteor(ctx, m) {
   ctx.save();
 
   const center = getMeteorCenter(m);
@@ -831,13 +836,13 @@ function getMeteorCenter(m) {
   return [x,y];
 }
 
-function drawExplosions() {
+function drawExplosions(ctx) {
   gs.explosions.map(e=>{
-    e.fragments.map(f=>drawFragment(f));
+    e.fragments.map(f=>drawFragment(ctx, f));
   });
 }
 
-function drawFragment(f) {
+function drawFragment(ctx, f) {
   ctx.fillStyle = f.color;
   ctx.beginPath();
 
@@ -855,7 +860,7 @@ function drawFragment(f) {
   ctx.fill();
 }
 
-function drawSatellites() {
+function drawSatellites(ctx) {
   const newHighlighted = [-1,-1];
   const minDist = [30,30];
   Object.keys(gs.satellites).map(k=>{
@@ -905,7 +910,7 @@ function drawSatellites() {
   gs.highlighted = newHighlighted;
 }
 
-function drawConnections() {
+function drawConnections(ctx) {
   // connect currently selected satellites
   ctx.save();
   ctx.lineCap = 'round';
@@ -983,13 +988,13 @@ function drawConnections() {
   });
 }
 
-function drawPlayers() {
+function drawPlayers(ctx) {
   for (let i = 0; i<2; i++) {
-    drawPlayer(gs.playerPos[i][0], gs.playerPos[i][1],i);
+    drawPlayer(ctx, gs.playerPos[i][0], gs.playerPos[i][1],i);
   }
 }
 
-function drawPlayer(x, y, player, color) {
+function drawPlayer(ctx, x, y, player, color) {
   ctx.save();
   const s = gs.selected[otherPlayer(player)];
   if (color) {
@@ -1050,7 +1055,7 @@ function drawPlayer(x, y, player, color) {
 function preloadAudio() {
   sounds = {}
 
-  sounds.select = new Audio('./sound/select_btn.flac');
+  sounds.select = new Audio('./sound/select_btn.mp3');
   sounds.select.skipTo = 0.03;
   sounds.select.playbackRate = 1.2;
   sounds.select.volume = 0.2;
