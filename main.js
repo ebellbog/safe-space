@@ -655,7 +655,7 @@ function updateTimer() {
 }
 
 function updateHealth() {
-  $('#health').html('❤️'.repeat(3-gs.hits));
+  $('#health').html('\u2764'.repeat(3-gs.hits));
 }
 
 function updateMeteorsStopped() {
@@ -720,8 +720,8 @@ function drawEarth() {
 
   ctx.save();
   ctx.filter = `sepia(${gs.hits/6})`;
-  ctx.drawImage($('#earth')[0], cWidth/2-earthRadius+dx,
-                                cHeight/2-earthRadius+dy,
+  ctx.drawImage($('#earth')[0], Math.floor(cWidth/2)-earthRadius+dx,
+                                Math.floor(cHeight/2)-earthRadius+dy,
                                 2*earthRadius,
                                 2*earthRadius);
   ctx.restore();
