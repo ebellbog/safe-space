@@ -194,6 +194,8 @@ function startGame() {
 
 function endGame() {
   clearInterval(gameInterval);
+  playSound('gameover');
+
   $('#stats').hide();
   $('#game').css('filter','blur(5px)');
 
@@ -395,12 +397,12 @@ function selectWithPlayer(player) {
       if (hType == pType) {
         gs.selected[player] = gs.highlighted[player];
         playSound('selectS2');
-      }
+      } else playSound('whoosh');
     } else {
       gs.selected[player] = gs.highlighted[player];
       playSound('selectS1');
     }
-  };
+  } else playSound('whoosh');
 }
 
 // Helper functions
@@ -1060,6 +1062,12 @@ function preloadAudio() {
   sounds.connect.skipTo = 0.3;
   sounds.connect.playbackRate = 2.5;
   sounds.connect.volume = 0.4;
+
+  sounds.whoosh = new Audio('./sound/whoosh.mp3');
+  sounds.whoosh.volume = 0.15;
+
+  sounds.gameover = new Audio('./sound/gameover.wav');
+  sounds.gameover.volume = 0.3;
 
   Object.keys(sounds).map(k=>sounds[k].preload='auto');
 }
