@@ -30,7 +30,7 @@ const earthRadius = 105;
 
 const starCount = 120;
 
-let titleInterval, gameInterval;
+let animationId;
 
 // Setup functions
 
@@ -156,8 +156,7 @@ function alignElements() {
 }
 
 function startGame() {
-  if (titleInterval) clearInterval(titleInterval);
-  if (gameInterval) clearInterval(gameInterval);
+  if (animationId) cancelAnimationFrame(animationId);
 
   $('.titleScreen').hide();
 
@@ -196,16 +195,18 @@ function startGame() {
   updateHealth();
   updateMeteorsStopped();
 
-  gameInterval = setInterval(()=>{
+  function animate() {
     update();
     draw();
-  }, 15);
+    animationId = requestAnimationFrame(animate);
+  };
+  requestAnimationFrame(animate);
 
   setTimeout(()=>$('#stats').show(), 30);
 }
 
 function endGame() {
-  clearInterval(gameInterval);
+  cancelAnimationFrame(animationId);
   playSound('gameover');
 
   $('#stats').hide();
@@ -235,11 +236,13 @@ function startTitles() {
   earthCtx.clearRect(0,0,eWidth,eHeight);
   playerCtx.clearRect(0,0,cWidth,cHeight);
 
-  titleInterval = setInterval(()=>{
+  function animate() {
     gameCtx.clearRect(0,0,cWidth,cHeight);
     drawStars(gameCtx);
     drawLogo(gameCtx);
-  }, 15);
+    animationId = requestAnimationFrame(animate);
+  }
+  requestAnimationFrame(animate);
 }
 
 function setupStars() {
@@ -606,7 +609,7 @@ function updateMeteors() {
       updateHealth();
 
       if (gs.hits == 3) setTimeout(()=> {
-        clearInterval(gameInterval);
+        cancelAnimationFrame(animationId);
         endGame();
       }, 1500);
     }

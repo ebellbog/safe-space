@@ -94,7 +94,7 @@ body {
   margin: 15px;
   border-radius: 10px;
   display: none;
-  z-index: 3;
+  z-index: 6;
 }
 
 #stats h3 {
@@ -113,6 +113,8 @@ body {
   -webkit-text-fill-color: transparent;
   text-shadow: none;
   font-size: 18px;
+  letter-spacing: 1px;
+  margin-left: 2px;
 }
 
 #start {
