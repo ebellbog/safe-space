@@ -222,13 +222,11 @@ body {
 td#instructions-wrapper {
   height: 100%;
   padding: 10px 0 10px 50px;
-  display: flex;
-  flex-direction: column;
-  justify-content: space-around;
 }
 
 .howto-instruction {
   width: 615px;
+  margin: 35px 0 35px 0;
 }
 
 .howto-instruction div {
@@ -253,12 +251,12 @@ td#instructions-wrapper {
 
 .instruction-number {
   font-size: 64px;
-  line-height: 58px;
+  line-height: 56px;
   font-weight: 400;
   text-shadow: 1px 1px 10px #222;
   vertical-align: top;
   margin: 0;
-  width: 50px;
+  width: 54px;
 }
 
 .instruction-contents {
