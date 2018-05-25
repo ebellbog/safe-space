@@ -30,6 +30,8 @@ const earthRadius = 105;
 
 const starCount = 120;
 
+const framerate = 1/60;
+
 let animationId;
 
 // Setup functions
@@ -173,6 +175,7 @@ function startGame() {
     playerVector: [[0,0], [0,0]],
     heldKeys: new Set(),
     startTime: Date.now(),
+    lastUpdateTime: Date.now(),
     lastAccelerateTime: Date.now(),
     lastMeteorTime: Date.now(),
     nextMeteor: 5000,
@@ -197,6 +200,7 @@ function startGame() {
 
   function animate() {
     update();
+    gs.lastUpdateTime = Date.now();
     draw();
     animationId = requestAnimationFrame(animate);
   };
@@ -503,19 +507,25 @@ function otherPlayer(player) {
   return (player+1)%2;
 }
 
+function getTimeScale() {
+  const elapsed = (Date.now()-gs.lastUpdateTime)/1000;
+  return elapsed/framerate;
+}
+
 // Update functions
 
 function updateSatellites() {
   Object.keys(gs.satellites).map(k=>{
     const s = gs.satellites[k];
     if (isSelected(k) || isConnected(k)) return;
-    s.theta += s.dt;
+    s.theta += s.dt*getTimeScale();
   });
 }
 
 function updatePlayers() {
-  const acc = .4;
-  const dec = .9;
+  const ts = getTimeScale();
+  const acc = .4*ts;
+  const dec = Math.pow(.9, ts);
   const max = 10;
   let doAcc = [false, false];
 
@@ -576,8 +586,8 @@ function updatePlayers() {
       gs.playerVector[i][1] *= dec;
     }
 
-    const newX = gs.playerPos[i][0]+gs.playerVector[i][0];
-    const newY = gs.playerPos[i][1]+gs.playerVector[i][1];
+    const newX = gs.playerPos[i][0]+gs.playerVector[i][0]*ts;
+    const newY = gs.playerPos[i][1]+gs.playerVector[i][1]*ts;
 
     if (!isInBounds(newX, newY, 0)) {
       gs.playerVector[i] = [0,0];
@@ -591,9 +601,9 @@ function updateMeteors() {
   // move existing meteors
   Object.keys(gs.meteors).map(k=>{
     const m = gs.meteors[k];
-    m.x += m.dx;
-    m.y += m.dy;
-    m.rotation += m.dt;
+    m.x += m.dx*getTimeScale();
+    m.y += m.dy*getTimeScale();
+    m.rotation += m.dt*getTimeScale();
 
     // test for collision with planet
     const dist = distToCenter(...getMeteorCenter(m));
@@ -654,9 +664,9 @@ function updateExplosions() {
   gs.explosions = gs.explosions.filter(e=>{
     let exploding = true;
     e.fragments.filter(f=>{
-      f.x += f.dx;
-      f.y += f.dy;
-      f.size -= 0.02;
+      f.x += f.dx*getTimeScale();
+      f.y += f.dy*getTimeScale();
+      f.size -= 0.02*getTimeScale();
       if (f.size < 0) exploding = false;
     });
     if (exploding) return e;
