@@ -284,3 +284,9 @@ td#screenshot-wrapper {
   background-color: white;
   border-radius: 15px;
 }
+
+.indicator {
+  color: black;
+  font-weight: 600;
+  margin: 0 10px 0 10px;
+}

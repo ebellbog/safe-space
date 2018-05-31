@@ -33,6 +33,12 @@ const starCount = 120;
 
 const framerate = 1/60;
 
+const levels = [
+  'EASY',
+  'NORMAL',
+  'HARD'
+];
+
 let animationId;
 
 // Setup functions
@@ -91,6 +97,20 @@ $(document).ready(function(){
         case 40: // down
           gs.activeBtn = !gs.activeBtn;
           playSound('select');
+          break;
+        case 37: // left
+        case 65: // a
+          if (gs.activeBtn == 1) {
+            gs.level = (gs.level+levels.length-1)%levels.length;
+            playSound('switch');
+          }
+          break;
+        case 39: // right
+        case 68: // d
+          if (gs.activeBtn == 1) {
+            gs.level = (gs.level+1)%levels.length;
+            playSound('switch');
+          }
           break;
         case 13: // return
         case 32: // space
@@ -185,10 +205,13 @@ function startGame() {
     meteorsStopped: 0,
     shakeEarth: 0,
     redrawEarth: 1,
-    startHealth: 5,
     hits: 0,
-    mode: 'game'
+    mode: 'game',
+    level: gs.level
   }
+
+  const healthValues = [5,3,4];
+  gs.startHealth = healthValues[gs.level];
 
   const placementMargin = 120;
   gs.playerPos = [[placementMargin, cHeight-placementMargin],
@@ -756,27 +779,14 @@ function updateMeteorsStopped() {
 
 function updateButtons() {
   for (let i = 0; i < 2; i++) {
-    let $btn = $(`#buttons :nth-child(${i+1})`);
+    let $btn = $(`#btn${i+1}`);
     $btn.toggleClass('active',i == gs.activeBtn);
   }
 
-  let btnLabel = 'PLAY ';
-  switch(gs.level) {
-    case 0:
-      btnLabel += 'EASY';
-      break;
-    case 1:
-      btnLabel += 'HARD';
-      break;
-    default:
-      break;
-  }
+  let btnLabel = 'START '+levels[gs.level];
 
-  if (gs.activeBtn == 1) {
-    btnLabel = `\u25c2&nbsp;${btnLabel}&nbsp;\u25b8`;
-  }
-
-  $('#buttons :nth-child(2)').html(btnLabel);
+  $('.indicator').toggle(gs.activeBtn == 1);
+  $('#difficulty').html(btnLabel);
 }
 
 function update() {
@@ -860,6 +870,9 @@ function drawLogo(ctx) {
   $('#title').css('text-shadow',
       `0 0 20px rgba(255,255,255,
       ${0.75+.25*Math.sin(2*elapsed)})`);
+
+  const margin = 14+4*Math.sin(4*elapsed);
+  $('.indicator').css('margin', margin);
 }
 
 function drawStars(ctx) {
@@ -1156,6 +1169,9 @@ function preloadAudio() {
   sounds.select.skipTo = 0.03;
   sounds.select.playbackRate = 1.2;
   sounds.select.volume = 0.2;
+
+  sounds.switch = new Audio('./sound/switch.wav');
+  sounds.switch.volume = 0.04;
 
   sounds.start = new Audio('./sound/start_game.wav');
   sounds.start.volume = 0.7;
