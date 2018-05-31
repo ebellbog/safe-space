@@ -25,6 +25,7 @@ const innerMargin = playerMargin-8;
 const meteorSize = 26;
 const maxMeteors = 6;
 const fragmentSize = .6
+const meteorStartSpeed = .6;
 
 const earthRadius = 105;
 
@@ -126,7 +127,7 @@ $(document).ready(function(){
         }
         break;
       case 13: // return
-        endGame();
+        addMeteor();
         break;
       default:
         gs.heldKeys.add(e.which);
@@ -179,11 +180,12 @@ function startGame() {
     lastAccelerateTime: Date.now(),
     lastMeteorTime: Date.now(),
     nextMeteor: 5000,
-    meteorSpeed: .6,
+    meteorSpeed: meteorStartSpeed,
     meteorFrequency: 6,
     meteorsStopped: 0,
     shakeEarth: 0,
     redrawEarth: 1,
+    startHealth: 5,
     hits: 0,
     mode: 'game'
   }
@@ -233,6 +235,7 @@ function startTitles() {
     startTime: Date.now(),
     activeBtn: 0,
     mode: 'titles',
+    level: 0
   }
 
   setupStars();
@@ -337,7 +340,20 @@ function addMeteor() {
   newMeteor.rotation = randFloat(2*Math.PI);
   newMeteor.offset = randInt(meteorSize/2);
 
-  switch(randInt(4)) {
+  const grav = true;
+  if (grav) newMeteor.motion = 'gravity';
+  else newMeteor.motion = 'linear';
+
+  if (grav) {
+    const r = Math.sqrt(Math.pow(cWidth/2,2)+
+                        Math.pow(cHeight/2,2))+
+              meteorSize;
+    const theta = randFloat(Math.PI*2);
+    newMeteor.x = r*Math.cos(theta)+cWidth/2;
+    newMeteor.y = r*Math.sin(theta)+cHeight/2;
+  }
+  else {
+    switch(randInt(4)) {
     case 0: // left side
       newMeteor.x = -meteorSize;
       newMeteor.y = randInt(cHeight);
@@ -354,18 +370,42 @@ function addMeteor() {
       newMeteor.x = randInt(cWidth);
       newMeteor.y = cHeight+meteorSize;
       break;
+    }
   }
 
   newMeteor.dt = randOffset(.03);
   newMeteor.dx = cWidth/2-newMeteor.x;
   newMeteor.dy = cHeight/2-newMeteor.y;
 
-  const coeff = Math.sqrt(Math.pow(gs.meteorSpeed,2)/
-                (Math.pow(newMeteor.dx,2)+
-                 Math.pow(newMeteor.dy,2)));
+  if (grav) {
+    let dxPerp, dyPerp;
+    if (Math.random() > .5) {
+      dxPerp = -newMeteor.dy;
+      dyPerp = newMeteor.dx;
+    } else {
+      dxPerp = newMeteor.dy;
+      dyPerp = -newMeteor.dx;
+    }
+
+    const minPerp = 0.5;
+    const perpRange = 3;
+    const perpCoeff = minPerp+randFloat(perpRange);
+
+    newMeteor.dx += dxPerp*perpCoeff;
+    newMeteor.dy += dyPerp*perpCoeff;
+  }
+
+  const coeff = (grav ? 3 : 1)*meteorStartSpeed
+                /Math.sqrt(Math.pow(newMeteor.dx,2)+
+                           Math.pow(newMeteor.dy,2));
 
   newMeteor.dx *= coeff;
   newMeteor.dy *= coeff;
+
+/*  if (newMeteor.motion == 'gravity') {
+    newMeteor.dx += randOffset(2);
+    newMeteor.dy += randOffset(2);
+  }*/
 
   gs.meteors[generateId()] = newMeteor;
 }
@@ -598,11 +638,34 @@ function updatePlayers() {
 }
 
 function updateMeteors() {
+  const speedScale = gs.meteorSpeed / meteorStartSpeed;
+  const scale = getTimeScale()*speedScale;
+
   // move existing meteors
   Object.keys(gs.meteors).map(k=>{
     const m = gs.meteors[k];
-    m.x += m.dx*getTimeScale();
-    m.y += m.dy*getTimeScale();
+
+    if (m.motion == 'gravity') {
+      const gravity = 5000;
+      const drag = .9991;
+
+      const distX = cWidth/2-m.x;
+      const distY = cHeight/2-m.y;
+      const diagonalDist = distToCenter(m.x, m.y);
+      const sumDist = Math.abs(distX)+Math.abs(distY);
+
+      const acc = scale*gravity/Math.pow(diagonalDist, 2);
+
+      m.dx += acc*distX/sumDist;
+      m.dy += acc*distY/sumDist;
+
+      m.dx *= Math.pow(drag, scale);
+      m.dy *= Math.pow(drag, scale);
+    }
+
+    m.x += m.dx*scale;
+    m.y += m.dy*scale;
+
     m.rotation += m.dt*getTimeScale();
 
     // test for collision with planet
@@ -618,7 +681,7 @@ function updateMeteors() {
       gs.redrawEarth = 1;
       updateHealth();
 
-      if (gs.hits == 3) setTimeout(()=> {
+      if (gs.hits == gs.startHealth) setTimeout(()=> {
         cancelAnimationFrame(animationId);
         endGame();
       }, 1500);
@@ -684,7 +747,7 @@ function updateTimer() {
 }
 
 function updateHealth() {
-  $('#health').html('\u2764'.repeat(3-gs.hits));
+  $('#health').html('\u2764'.repeat(gs.startHealth-gs.hits));
 }
 
 function updateMeteorsStopped() {
@@ -696,6 +759,24 @@ function updateButtons() {
     let $btn = $(`#buttons :nth-child(${i+1})`);
     $btn.toggleClass('active',i == gs.activeBtn);
   }
+
+  let btnLabel = 'PLAY ';
+  switch(gs.level) {
+    case 0:
+      btnLabel += 'EASY';
+      break;
+    case 1:
+      btnLabel += 'HARD';
+      break;
+    default:
+      break;
+  }
+
+  if (gs.activeBtn == 1) {
+    btnLabel = `\u25c2&nbsp;${btnLabel}&nbsp;\u25b8`;
+  }
+
+  $('#buttons :nth-child(2)').html(btnLabel);
 }
 
 function update() {
@@ -799,12 +880,13 @@ function drawMeteors(ctx) {
 function drawMeteor(ctx, m) {
   ctx.save();
 
+  const grv = m.motion == 'gravity';
   const center = getMeteorCenter(m);
   const gradient = ctx.createRadialGradient(
       center[0], center[1], 0,
       center[0], center[1], meteorSize);
-  gradient.addColorStop(0.1, "#b39880");
-  gradient.addColorStop(1, "#604b39");
+  gradient.addColorStop(grv ? 0 : 0.1, grv ? "#888" : "#b39880");
+  gradient.addColorStop(1, grv ? "#111" : "#604b39");
 
   ctx.fillStyle = gradient;
   ctx.strokeStyle = m.type.color;
@@ -824,10 +906,12 @@ function drawMeteor(ctx, m) {
   ctx.stroke();
   ctx.restore();
 
+  const polyColor = grv ? 'rgba(40,40,40,0.8)':
+                          'rgba(96,75,57,0.65)';
   drawPolygon(ctx,
               center[0], center[1],
               m.type.sides, meteorSize/1.7,
-              {color:'rgba(96,75,57,0.65)',
+              {color: polyColor,
                style:'fill', rotation:m.rotation});
 }
 
