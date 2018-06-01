@@ -84,7 +84,7 @@ $(document).ready(function(){
     }
 
     if (gs.mode == 'howto') {
-      $('.overlay, #howto').hide();
+      $('.overlay').hide();
       gs.mode = 'titles';
       return;
     }
@@ -118,7 +118,7 @@ $(document).ready(function(){
         case 78: // n
           if (gs.activeBtn == 1) setTimeout(startGame,800);
           else {
-            $('.overlay, #howto').show();
+            $('.overlay').show();
             gs.mode = 'howto';
           }
           playSound('start');
@@ -144,10 +144,10 @@ $(document).ready(function(){
         if (!(gs.selected[0] == -1 || gs.selected[1] ==  -1)) {
           createConnection(gs.selected[0], gs.selected[1]);
           playSound('connect');
-        }
+        } else playSound('whoosh');
         break;
       case 13: // return
-        addMeteor();
+        endGame();
         break;
       default:
         gs.heldKeys.add(e.which);
@@ -159,10 +159,28 @@ $(document).ready(function(){
 });
 
 function alignElements() {
-  const $game = $('#game');
-  const scale = $game.height()/768;
-  const earthScale = $game.height()/1080;
+  const gHeight = window.innerHeight;//$game.height();
+  const gWidth = window.innerWidth;//$game.width();
 
+  let scale, earthScale;
+  const aspect = gHeight/gWidth;
+
+  if (aspect >= 9/16) {
+    $('#game, #player-canvas, #gradient, #matte').css(
+        {height: gWidth*9/16, width: gWidth});
+    scale = gWidth/1365;
+    earthScale = gWidth/1920;
+  } else {
+    $('#game, #player-canvas, #gradient, #matte').css(
+        {height: gHeight, width: gHeight*16/9});
+    scale = gHeight/768;
+    earthScale = gHeight/1080;
+  }
+
+  const fullScreen = Math.floor(aspect*100) == Math.floor(900/16);
+  $('body').css('background-color', fullScreen ? '#444' : '#222');
+
+  const $game = $('#game');
   $('#earth-canvas')
     .css('transform', `translate(-50%,-50%) scale(${earthScale})`);
   $('#text, #gameover, #howto')
@@ -175,7 +193,8 @@ function alignElements() {
              .css('top', $game.offset().top);
   $('#credit').css('font-size', `${20*scale}px`)
               .css('margin', `${10*scale}px`)
-              .css('right', $game.offset().left);
+              .css('right', $game.offset().left)
+              .css('bottom', $game.offset().top);
 }
 
 function startGame() {
