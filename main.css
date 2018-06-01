@@ -217,17 +217,17 @@ body {
   font-weight: 600;
   text-shadow: 0 0 15px #ccc;
   text-align: center;
-  height: 100px;
+  padding-top: 20px;
+  padding-bottom: 5px;
 }
 
 td#instructions-wrapper {
-  height: 100%;
   padding: 10px 0 10px 50px;
 }
 
 .howto-instruction {
   width: 615px;
-  margin: 35px 0 35px 0;
+  margin: 30px 0 30px 0;
 }
 
 .howto-instruction div {
@@ -251,8 +251,8 @@ td#instructions-wrapper {
 }
 
 .instruction-number {
-  font-size: 64px;
-  line-height: 56px;
+  font-size: 60px;
+  line-height: 48px;
   font-weight: 400;
   text-shadow: 1px 1px 10px #222;
   vertical-align: top;
@@ -262,7 +262,7 @@ td#instructions-wrapper {
 
 .instruction-contents {
   color: white;
-  font-size: 26px;
+  font-size: 25px;
   font-weight: 200;
   text-shadow: 1px 1px 2px #333;
   width: 80%;
@@ -274,6 +274,17 @@ td#instructions-wrapper {
 
 td#screenshot-wrapper {
   width: 60%;
+}
+
+#footer {
+  text-align: center;
+}
+
+#footer td {
+  color: #aaa;
+  font-size: 30px;
+  font-weight: 400;
+  padding-bottom: 30px;
 }
 
 .screenshot {

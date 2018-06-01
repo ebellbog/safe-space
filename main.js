@@ -333,7 +333,6 @@ function addSatellite() {
 function createConnection(id1,id2) {
   const s1 = gs.satellites[id1];
   const s2 = gs.satellites[id2];
-  if (crossesEarth([s1.x,s1.y], [s2.x,s2.y])) return;
 
   const newConnection = {};
   newConnection.id1 = id1;
@@ -363,7 +362,7 @@ function addMeteor() {
   newMeteor.rotation = randFloat(2*Math.PI);
   newMeteor.offset = randInt(meteorSize/2);
 
-  const grav = true;
+  const grav = false;
   if (grav) newMeteor.motion = 'gravity';
   else newMeteor.motion = 'linear';
 
