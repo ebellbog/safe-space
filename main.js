@@ -23,9 +23,8 @@ const playerMargin = 18;
 const innerMargin = playerMargin-8;
 
 const meteorSize = 26;
-const maxMeteors = 6;
 const fragmentSize = .6
-const meteorStartSpeed = .6;
+const meteorBaseSpeed = .6;
 
 const earthRadius = 105;
 
@@ -146,8 +145,11 @@ $(document).ready(function(){
           playSound('connect');
         } else playSound('whoosh');
         break;
-      case 13: // return
+      case 8: // backspace
         endGame();
+        break;
+      case 13: // return (for testing)
+        addMeteor();
         break;
       default:
         gs.heldKeys.add(e.which);
@@ -215,9 +217,6 @@ function startGame() {
     lastUpdateTime: Date.now(),
     lastAccelerateTime: Date.now(),
     lastMeteorTime: Date.now(),
-    nextMeteor: 5000,
-    meteorSpeed: meteorStartSpeed,
-    meteorFrequency: 6,
     meteorsStopped: 0,
     shakeEarth: 0,
     redrawEarth: 1,
@@ -226,8 +225,7 @@ function startGame() {
     level: gs.level
   }
 
-  const healthValues = [5,3,4];
-  gs.startHealth = healthValues[gs.level];
+  configureLevel(gs.level);
 
   const placementMargin = 120;
   gs.playerPos = [[placementMargin, cHeight-placementMargin],
@@ -293,6 +291,64 @@ function startTitles() {
     animationId = requestAnimationFrame(animate);
   }
   requestAnimationFrame(animate);
+}
+
+function configureLevel(level) {
+  switch(level) {
+    case 0:
+      gs.startHealth = 5;
+
+      gs.meteorSpeed = meteorBaseSpeed-.1; // .5
+      gs.speedDelta = .1;
+      gs.maxSpeed = 1.5;
+
+      gs.meteorFrequency = 8;
+      gs.frequencyDelta = .5;
+      gs.minFrequency = 3;
+
+      gs.maxMeteors = 4;
+      gs.nextMeteor = 5;
+      gs.accelerateDelay = 30;
+
+      gs.gravityProbability = 0;
+      break;
+    case 1:
+      gs.startHealth = 3;
+
+      gs.meteorSpeed = meteorBaseSpeed+.2; // .8
+      gs.speedDelta = .1;
+      gs.maxSpeed = 2.3;
+
+      gs.meteorFrequency = 5;
+      gs.frequencyDelta = .75;
+      gs.minFrequency = 1;
+
+      gs.maxMeteors = 6;
+      gs.nextMeteor = 3;
+      gs.accelerateDelay = 30;
+
+      gs.gravityProbability = 0;
+      break;
+    case 2:
+      gs.startHealth = 4;
+
+      gs.meteorSpeed = meteorBaseSpeed+.4; // 1
+      gs.speedDelta = .1;
+      gs.maxSpeed = 2.5;
+
+      gs.meteorFrequency = 5;
+      gs.frequencyDelta = 1;
+      gs.minFrequency = 1;
+
+      gs.maxMeteors = 8;
+      gs.nextMeteor = 2;
+      gs.accelerateDelay = 25;
+
+      gs.gravityProbability = .5;
+      break;
+    default:
+      break;
+  }
 }
 
 function setupStars() {
@@ -382,7 +438,7 @@ function addMeteor() {
   newMeteor.rotation = randFloat(2*Math.PI);
   newMeteor.offset = randInt(meteorSize/2);
 
-  const grav = true;
+  const grav = Math.random() < gs.gravityProbability;
   if (grav) newMeteor.motion = 'gravity';
   else newMeteor.motion = 'linear';
 
@@ -437,17 +493,12 @@ function addMeteor() {
     newMeteor.dy += dyPerp*perpCoeff;
   }
 
-  const coeff = (grav ? 3 : 1)*meteorStartSpeed
+  const coeff = (grav ? 3 : 1)*meteorBaseSpeed
                 /Math.sqrt(Math.pow(newMeteor.dx,2)+
                            Math.pow(newMeteor.dy,2));
 
   newMeteor.dx *= coeff;
   newMeteor.dy *= coeff;
-
-/*  if (newMeteor.motion == 'gravity') {
-    newMeteor.dx += randOffset(2);
-    newMeteor.dy += randOffset(2);
-  }*/
 
   gs.meteors[generateId()] = newMeteor;
 }
@@ -589,9 +640,12 @@ function otherPlayer(player) {
   return (player+1)%2;
 }
 
+function getElapsed(time) {
+  return (Date.now()-time)/1000;
+}
+
 function getTimeScale() {
-  const elapsed = (Date.now()-gs.lastUpdateTime)/1000;
-  return elapsed/framerate;
+  return getElapsed(gs.lastUpdateTime)/framerate;
 }
 
 // Update functions
@@ -606,9 +660,9 @@ function updateSatellites() {
 
 function updatePlayers() {
   const ts = getTimeScale();
-  const acc = .4*ts;
+  const acc = .5*ts;
   const dec = Math.pow(.9, ts);
-  const max = 10;
+  const max = 9;
   let doAcc = [false, false];
 
   if (gs.heldKeys.size > 0) {
@@ -680,14 +734,18 @@ function updatePlayers() {
 }
 
 function updateMeteors() {
-  const speedScale = gs.meteorSpeed / meteorStartSpeed;
-  const scale = getTimeScale()*speedScale;
+  const gravityScale = 0.3;
+  const speedScale = gs.meteorSpeed / meteorBaseSpeed;
+  const timeScale = getTimeScale();
 
   // move existing meteors
   Object.keys(gs.meteors).map(k=>{
     const m = gs.meteors[k];
+    let scale = speedScale * timeScale;
 
     if (m.motion == 'gravity') {
+      scale *= gravityScale;
+
       const gravity = 5000;
       const drag = .9991;
 
@@ -749,18 +807,32 @@ function updateMeteors() {
   });
 
   // add new meteor
-  if (Date.now()-gs.lastMeteorTime > gs.nextMeteor
-      && Object.keys(gs.meteors).length < maxMeteors) {
+  if (getElapsed(gs.lastMeteorTime) > gs.nextMeteor
+      && Object.keys(gs.meteors).length < gs.maxMeteors) {
      addMeteor();
      gs.lastMeteorTime = Date.now();
-     gs.nextMeteor = gs.meteorFrequency*1000+
-                     randInt(gs.meteorFrequency*2000);
+     gs.nextMeteor = gs.meteorFrequency+
+                     randInt(gs.meteorFrequency*2);
+  }
+}
+
+function updateDifficulty() {
+  const totalElapsed = getElapsed(gs.startTime);
+  if (gs.level == 1) {
+    if (totalElapsed > 180) gs.gravityProbability = .65;
+    else if (totalElapsed > 90) gs.gravityProbability = .4;
+    else if (totalElapsed > 45) gs.gravityProbability = .25;
+  }
+  else if (gs.level == 2) {
+    if (totalElapsed > 60) gs.gravityProbability = .75;
+    else if (totalElapsed > 120) gs.gravityProbability = .9;
   }
 
-  // increase difficulty every 25 sec
-  if ((Date.now()-gs.lastAccelerateTime)/1000 > 25) {
-    gs.meteorSpeed = Math.min(gs.meteorSpeed+.1, 2.3);
-    gs.meteorFrequency = Math.max(gs.meteorFrequency-.5, 1);
+  if (getElapsed(gs.lastAccelerateTime) > gs.accelerateDelay) {
+    gs.meteorSpeed = Math.min(gs.meteorSpeed+gs.speedDelta,
+                              gs.maxSpeed);
+    gs.meteorFrequency = Math.max(gs.meteorFrequency-gs.frequencyDelta,
+                                  gs.minFrequency);
     gs.lastAccelerateTime = Date.now();
   }
 }
@@ -779,7 +851,7 @@ function updateExplosions() {
 }
 
 function updateTimer() {
-  const elapsed = (Date.now()-gs.startTime)/1000;
+  const elapsed = getElapsed(gs.startTime);
   const min = Math.floor(elapsed/60);
   const sec = Math.floor(elapsed%60);
   const zero = sec < 10 ? '0' : '';
@@ -814,6 +886,7 @@ function update() {
   updateExplosions();
   updatePlayers();
   updateTimer();
+  updateDifficulty();
 }
 
 // Draw functions
@@ -874,7 +947,7 @@ function drawEarth() {
 }
 
 function drawLogo(ctx) {
-  const elapsed = (Date.now()-gs.startTime)/1000;
+  const elapsed = getElapsed(gs.startTime);
   const radius = 365+27*Math.sin(elapsed/1.5);
   const length = 675;
   const rotation = 3*Math.PI/10+elapsed/10;
@@ -1114,7 +1187,7 @@ function drawConnections(ctx) {
     const cnctn = gs.connections[k];
     if (cnctn.phaseOut) {
       const phaseDuration = 0.6;
-      const elapsed = (Date.now()-cnctn.phaseOut)/1000;
+      const elapsed = getElapsed(cnctn.phaseOut);
 
       if (elapsed > phaseDuration) {
         removeConnection(k);
