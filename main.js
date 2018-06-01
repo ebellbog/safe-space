@@ -34,9 +34,9 @@ const starCount = 120;
 const framerate = 1/60;
 
 const levels = [
-  'EASY',
-  'NORMAL',
-  'HARD'
+  'Easy',
+  'Normal',
+  'Hard'
 ];
 
 let animationId;
@@ -257,7 +257,11 @@ function endGame() {
   $('#stats').hide();
   $('#game, #earth-canvas, #player-canvas').css('filter','blur(5px)');
 
-  $('#gameover div:nth-child(2)').html($('#timer').html());
+  $('#gameover div:nth-child(2)').html(
+      `${$('#timer').html()} &nbsp;|&nbsp;
+       ${$('#stopped').html()} meteors`);
+  $('#gameover div:nth-child(3)').html(
+      `Difficulty: ${levels[gs.level]}`);
   $('#gameover').show();
 
   gs.mode = 'gameover';
@@ -378,7 +382,7 @@ function addMeteor() {
   newMeteor.rotation = randFloat(2*Math.PI);
   newMeteor.offset = randInt(meteorSize/2);
 
-  const grav = false;
+  const grav = true;
   if (grav) newMeteor.motion = 'gravity';
   else newMeteor.motion = 'linear';
 
@@ -798,7 +802,7 @@ function updateButtons() {
     $btn.toggleClass('active',i == gs.activeBtn);
   }
 
-  let btnLabel = 'START '+levels[gs.level];
+  let btnLabel = 'START '+levels[gs.level].toUpperCase();
 
   $('.indicator').toggle(gs.activeBtn == 1);
   $('#difficulty').html(btnLabel);
@@ -842,9 +846,27 @@ function drawEarth() {
     }
   }
 
+  let sepia, spriteIndex;
+  sepia = gs.hits/6;
+
+  let h = Math.min(gs.hits, gs.startHealth);
+  switch(gs.startHealth) {
+    case 3:
+      spriteIndex = h+1;
+      break;
+    case 4:
+      spriteIndex = [1,2,2,3,4][h];
+      break;
+    case 5:
+      spriteIndex = [1,2,2,3,3,4][h];
+      break;
+    default:
+      break;
+  }
+
   earthCtx.clearRect(0,0,eWidth,eHeight);
-  earthCtx.filter = `sepia(${gs.hits/6})`;
-  earthCtx.drawImage($(`#earth${Math.min(gs.hits+1,4)}`)[0],
+  earthCtx.filter = `sepia(${sepia})`;
+  earthCtx.drawImage($(`#earth${spriteIndex}`)[0],
       Math.floor(eWidth/2)-earthRadius+dx,
       Math.floor(eHeight/2)-earthRadius+dy,
       2*earthRadius,
