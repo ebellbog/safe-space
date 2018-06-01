@@ -166,24 +166,21 @@ function alignElements() {
   const aspect = gHeight/gWidth;
 
   if (aspect >= 9/16) {
-    $('#game, #player-canvas, #gradient, #matte').css(
+    $('.centered-full').css(
         {height: gWidth*9/16, width: gWidth});
     scale = gWidth/1365;
     earthScale = gWidth/1920;
   } else {
-    $('#game, #player-canvas, #gradient, #matte').css(
+    $('.centered-full').css(
         {height: gHeight, width: gHeight*16/9});
     scale = gHeight/768;
     earthScale = gHeight/1080;
   }
 
-  const fullScreen = Math.floor(aspect*100) == Math.floor(900/16);
-  $('body').css('background-color', fullScreen ? '#444' : '#222');
-
-  const $game = $('#game');
-  $('#earth-canvas')
+  const $game = $('#game-wrapper');
+  $('.centered-earth')
     .css('transform', `translate(-50%,-50%) scale(${earthScale})`);
-  $('#text, #gameover, #howto')
+  $('.centered')
     .css('transform', `translate(-50%,-50%) scale(${scale})`);
   $('#stats').css('transform',`translate(-50%,-50%)
                                scale(${scale})

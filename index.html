@@ -6,11 +6,11 @@
 <link rel="stylesheet" href="./main.css">
 </head>
 <body>
-<canvas id="game" class="centered"
-        width="1920" height="1080"></canvas>
-<canvas id="earth-canvas" class="centered"
+<div id="game-wrapper" class="centered-full"><canvas id="game"
+    width="1920" height="1080"></canvas></div>
+<canvas id="earth-canvas" class="centered-earth"
         width="300" height="300"></canvas>
-<canvas id="player-canvas" class="centered"
+<canvas id="player-canvas" class="centered-full"
         width="1920" height="1080"></canvas>
 <div id="text" class="titleScreen centered">
   <div id="title"> Safe Space </div>
@@ -84,8 +84,8 @@
   <td colspan=2><em> Press any button to return </em></td>
 </tr>
 </table>
-<div id="gradient" class="overlay centered"><div></div></div>
-<div id="matte" class="overlay centered"></div>
+<div id="gradient" class="overlay centered-full"><div></div></div>
+<div id="matte" class="overlay centered-full"></div>
 <div id="stats">
   <h3> Earth safe for <span id="timer">0:00</span></h3>
   <h3> Meteors stopped: <span id="stopped">0</span></h3>
