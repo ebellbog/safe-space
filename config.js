@@ -26,6 +26,10 @@ const meteorSize = 26;
 const fragmentSize = .6
 const meteorBaseSpeed = .6;
 
+const warningSize = 35;
+const arrowSize = 14;
+const arrowWidth = .4;
+
 const earthRadius = 105;
 
 const starCount = 120;

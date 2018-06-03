@@ -112,22 +112,6 @@ function addMeteor() {
   gs.meteors[generateId()] = newMeteor;
 }
 
-function generateMeteorPoints() {
-  const count = 6+randInt(6);
-  const points = [];
-
-  let theta = 0, r;
-  while (theta < Math.PI*2) {
-    r = meteorSize+randOffset(7);
-    theta += .1+randFloat(2*Math.PI/count-.1);
-    theta = Math.min(theta, Math.PI*2);
-
-    points.push([r, theta]);
-  }
-
-  return points;
-}
-
 function addExplosion(x,y) {
   const newExplosion = {
     fragments: []
@@ -150,4 +134,17 @@ function addExplosion(x,y) {
    newExplosion.fragments.push(newFragment);
   }
   gs.explosions.push(newExplosion);
+}
+
+function addWarning(meteorId, x, y) {
+  // TODO: base parameters on meteor parameters
+  const newWarning = {};
+
+  newWarning.meteorId = meteorId;
+  newWarning.x = x;
+  newWarning.y = y;
+  newWarning.direction = Math.PI/4;
+  newWarning.type = satelliteTypes[meteorId];
+
+  gs.warnings.push(newWarning);
 }

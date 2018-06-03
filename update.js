@@ -1,11 +1,12 @@
 function update() {
   updateSatellites();
   updateMeteors();
+  updateWarnings();
   updateExplosions();
   updatePlayers();
   updateTimer();
   updateDifficulty();
-  if(debug) updateDebug();
+  if (debug) updateDebug();
 }
 
 function updateSatellites() {
@@ -263,4 +264,11 @@ function updateDebug() {
                roundTo(nextIncrease,2)+"<br>";
 
   $('#debug').html(debugInfo);
+}
+
+function updateWarnings() {
+  gs.warnings.forEach(w => {
+    // TODO: track meteors
+    w.direction += .01;
+  });
 }

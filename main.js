@@ -132,6 +132,7 @@ function startGame() {
     validConnection: [false, false],
     stars: [],
     meteors: {},
+    warnings: [],
     explosions: [],
     playerVector: [[0,0], [0,0]],
     heldKeys: new Set(),
@@ -158,6 +159,13 @@ function startGame() {
 
   updateHealth();
   updateMeteorsStopped();
+
+  //TODO: remove
+  addWarning(0, 500, 300);
+  addWarning(1, 500, 400);
+  addWarning(2, 500, 500);
+  addWarning(3, 500, 600);
+  addWarning(4, 500, 700);
 
   function animate() {
     update();

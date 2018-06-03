@@ -10,6 +10,7 @@ function draw() {
   drawMeteors(playerCtx);
   drawExplosions(playerCtx);
   drawPlayers(playerCtx);
+  drawWarnings(playerCtx);
 }
 
 function drawEarth() {
@@ -143,6 +144,22 @@ function drawMeteor(ctx, m) {
               m.type.sides, meteorSize/1.7,
               {color: polyColor,
                style:'fill', rotation:m.rotation});
+}
+
+function generateMeteorPoints() {
+  const count = 6+randInt(6);
+  const points = [];
+
+  let theta = 0, r;
+  while (theta < Math.PI*2) {
+    r = meteorSize+randOffset(7);
+    theta += .1+randFloat(2*Math.PI/count-.1);
+    theta = Math.min(theta, Math.PI*2);
+
+    points.push([r, theta]);
+  }
+
+  return points;
 }
 
 function getMeteorCoord(m,i) {
@@ -375,4 +392,41 @@ function drawPlayer(ctx, x, y, player, color) {
   ctx.fill();
 
   ctx.restore();
+}
+
+function drawWarnings(ctx) {
+  gs.warnings.forEach(w=>drawWarning(ctx, w));
+}
+
+function drawWarning(ctx, warning) {
+  ctx.fillStyle = warning.type.color;
+
+  ctx.beginPath();
+  ctx.arc(warning.x, warning.y, warningSize, 0, Math.PI*2);
+  ctx.fill();
+
+  const sides = warning.type.sides;
+  let size = warningSize*.75;
+  if (sides == 3) size *= 1.15;
+  else if (sides > 6) size *= 0.85;
+
+  drawPolygon(ctx,
+              warning.x, warning.y,
+              sides, size,
+              {color: 'rgba(0,0,0,0.4)', style:'fill'});
+
+  ctx.font = "800 36px 'Exo 2'";
+  ctx.fillStyle = warning.type.color;
+  ctx.fillText('!', warning.x-6, warning.y+(sides == 3 ? 10 : 12));
+
+  ctx.beginPath();
+  size = warningSize;
+  ctx.moveTo(size*Math.cos(warning.direction-arrowWidth)+warning.x,
+             size*Math.sin(warning.direction-arrowWidth)+warning.y);
+  ctx.lineTo(size*Math.cos(warning.direction+arrowWidth)+warning.x,
+              size*Math.sin(warning.direction+arrowWidth)+warning.y);
+  size += arrowSize;
+  ctx.lineTo(size*Math.cos(warning.direction)+warning.x,
+              size*Math.sin(warning.direction)+warning.y);
+  ctx.fill();
 }
