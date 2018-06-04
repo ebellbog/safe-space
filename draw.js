@@ -94,7 +94,7 @@ function drawLogo(ctx) {
 }
 
 function drawStars(ctx) {
-  gs.stars.map(s=>{
+  gs.stars.forEach(s=>{
     let bri = Math.floor(Math.sin((Date.now()-gs.startTime)/500
               +s.twinkle*100)*75+180);
     ctx.fillStyle=`rgb(${bri},${bri},${bri})`;
@@ -105,7 +105,8 @@ function drawStars(ctx) {
 }
 
 function drawMeteors(ctx) {
-  Object.keys(gs.meteors).map(k=>drawMeteor(ctx, gs.meteors[k]));
+  Object.keys(gs.meteors).forEach(
+      k=>drawMeteor(ctx, gs.meteors[k]));
 }
 
 function drawMeteor(ctx, m) {
@@ -181,8 +182,8 @@ function getMeteorCenter(m) {
 }
 
 function drawExplosions(ctx) {
-  gs.explosions.map(e=>{
-    e.fragments.map(f=>drawFragment(ctx, f));
+  gs.explosions.forEach(e=>{
+    e.fragments.forEach(f=>drawFragment(ctx, f));
   });
 }
 
@@ -207,7 +208,7 @@ function drawFragment(ctx, f) {
 function drawSatellites(ctx) {
   const newHighlighted = [-1,-1];
   const minDist = [30,30];
-  Object.keys(gs.satellites).map(k=>{
+  Object.keys(gs.satellites).forEach(k=>{
     const s = gs.satellites[k];
     if (s.r && s.theta) {
       s.x = s.r * Math.cos(s.theta) + cWidth/2;
@@ -306,7 +307,7 @@ function drawConnections(ctx) {
 
   // draw existing connections
   ctx.lineWidth = 7;
-  Object.keys(gs.connections).map(k=>{
+  Object.keys(gs.connections).forEach(k=>{
     ctx.save();
     const cnctn = gs.connections[k];
     if (cnctn.phaseOut) {
@@ -395,7 +396,8 @@ function drawPlayer(ctx, x, y, player, color) {
 }
 
 function drawWarnings(ctx) {
-  gs.warnings.forEach(w=>drawWarning(ctx, w));
+  Object.keys(gs.warnings).forEach(
+      k=>drawWarning(ctx, gs.warnings[k]));
 }
 
 function drawWarning(ctx, warning) {

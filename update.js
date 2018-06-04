@@ -10,7 +10,7 @@ function update() {
 }
 
 function updateSatellites() {
-  Object.keys(gs.satellites).map(k=>{
+  Object.keys(gs.satellites).forEach(k=>{
     const s = gs.satellites[k];
     if (isSelected(k) || isConnected(k)) return;
     s.theta += s.dt*getTimeScale();
@@ -98,11 +98,15 @@ function updateMeteors() {
   const timeScale = getTimeScale();
 
   // move existing meteors
-  Object.keys(gs.meteors).map(k=>{
+  Object.keys(gs.meteors).forEach(k=>{
     const m = gs.meteors[k];
     let scale = speedScale * timeScale;
 
     if (m.motion == 'gravity') {
+      if (m.warningId == -1 &&
+          !isInBounds(...getMeteorCenter(m), meteorSize))
+            addWarning(k);
+
       scale =  Math.sqrt(speedScale) * timeScale * gravityScale;
 
       const gravity = 5000;
@@ -147,7 +151,7 @@ function updateMeteors() {
     }
 
     // test for collision with line
-    Object.keys(gs.connections).map(y=>{
+    Object.keys(gs.connections).forEach(y=>{
       const c = gs.connections[y];
       if (c.color != m.type.color || c.phaseOut) return;
 
@@ -264,15 +268,21 @@ function updateDebug() {
                roundTo(nextIncrease,2)+"<br>";
 
   debugInfo += "<br>Number of warnings: "+
-               gs.warnings.length+"<br>";
+               Object.keys(gs.warnings).length+"<br>";
 
   $('#debug').html(debugInfo);
 }
 
 function updateWarnings() {
   const totalMargin = warningMargin + warningSize + arrowSize;
-  gs.warnings = gs.warnings.filter(w => {
+  Object.keys(gs.warnings).forEach(k => {
+    const w = gs.warnings[k];
     const m = gs.meteors[w.meteorId];
+    if (isInBounds(...getMeteorCenter(m), meteorSize)) {
+      m.warningId = -1;
+      delete(gs.warnings[k]);
+      return;
+    }
 
     w.x = Math.min(Math.max(m.x, totalMargin),
                    cWidth-totalMargin);
@@ -280,10 +290,7 @@ function updateWarnings() {
                    cHeight-totalMargin);
 
     const dist = getDist([w.x,w.y], [m.x,m.y]);
-    if (dist < Math.max(meteorSize, warningSize)+20) return;
-
     w.direction = Math.PI*2-Math.asin((w.y-m.y)/dist);
     if (m.x < w.x) w.direction = Math.PI-w.direction;
-    return w;
   });
 }

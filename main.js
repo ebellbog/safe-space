@@ -132,7 +132,7 @@ function startGame() {
     validConnection: [false, false],
     stars: [],
     meteors: {},
-    warnings: [],
+    warnings: {},
     explosions: [],
     playerVector: [[0,0], [0,0]],
     heldKeys: new Set(),

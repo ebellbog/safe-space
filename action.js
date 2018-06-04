@@ -109,10 +109,8 @@ function addMeteor() {
   newMeteor.dx *= coeff;
   newMeteor.dy *= coeff;
 
-  const mId = generateId();
-  gs.meteors[mId] = newMeteor;
-
-  if (grav) addWarning(mId);
+  newMeteor.warningId = -1;
+  gs.meteors[generateId()] = newMeteor;
 }
 
 function addExplosion(x,y) {
@@ -150,5 +148,7 @@ function addWarning(meteorId) {
   newWarning.y = 0;
   newWarning.direction = 0;
 
-  gs.warnings.push(newWarning);
+  const wId = generateId();
+  m.warningId = wId;
+  gs.warnings[wId] = newWarning;
 }
