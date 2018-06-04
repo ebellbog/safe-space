@@ -49,11 +49,11 @@ function configureLevel(level) {
       gs.startHealth = 5;
 
       gs.meteorSpeed = meteorBaseSpeed-.1; // .5
-      gs.speedDelta = .1;
+      gs.speedDelta = .075;
       gs.maxSpeed = 1.5;
 
       gs.meteorFrequency = 8;
-      gs.frequencyDelta = .5;
+      gs.frequencyDelta = .6;
       gs.minFrequency = 1.5;
 
       gs.maxMeteors = 4;
@@ -83,11 +83,11 @@ function configureLevel(level) {
       gs.startHealth = 4;
 
       gs.meteorSpeed = meteorBaseSpeed+.4; // 1
-      gs.speedDelta = .1;
+      gs.speedDelta = .15;
       gs.maxSpeed = 2.5;
 
       gs.meteorFrequency = 4;
-      gs.frequencyDelta = .75;
+      gs.frequencyDelta = .65;
       gs.minFrequency = .5;
 
       gs.maxMeteors = 8;
