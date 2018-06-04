@@ -263,12 +263,27 @@ function updateDebug() {
   debugInfo += "<br>Next difficulty increase: "+
                roundTo(nextIncrease,2)+"<br>";
 
+  debugInfo += "<br>Number of warnings: "+
+               gs.warnings.length+"<br>";
+
   $('#debug').html(debugInfo);
 }
 
 function updateWarnings() {
-  gs.warnings.forEach(w => {
-    // TODO: track meteors
-    w.direction += .01;
+  const totalMargin = warningMargin + warningSize + arrowSize;
+  gs.warnings = gs.warnings.filter(w => {
+    const m = gs.meteors[w.meteorId];
+
+    w.x = Math.min(Math.max(m.x, totalMargin),
+                   cWidth-totalMargin);
+    w.y = Math.min(Math.max(m.y, totalMargin),
+                   cHeight-totalMargin);
+
+    const dist = getDist([w.x,w.y], [m.x,m.y]);
+    if (dist < Math.max(meteorSize, warningSize)+20) return;
+
+    w.direction = Math.PI*2-Math.asin((w.y-m.y)/dist);
+    if (m.x < w.x) w.direction = Math.PI-w.direction;
+    return w;
   });
 }

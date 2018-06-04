@@ -109,7 +109,10 @@ function addMeteor() {
   newMeteor.dx *= coeff;
   newMeteor.dy *= coeff;
 
-  gs.meteors[generateId()] = newMeteor;
+  const mId = generateId();
+  gs.meteors[mId] = newMeteor;
+
+  if (grav) addWarning(mId);
 }
 
 function addExplosion(x,y) {
@@ -136,15 +139,16 @@ function addExplosion(x,y) {
   gs.explosions.push(newExplosion);
 }
 
-function addWarning(meteorId, x, y) {
-  // TODO: base parameters on meteor parameters
+function addWarning(meteorId) {
+  const m = gs.meteors[meteorId];
   const newWarning = {};
 
   newWarning.meteorId = meteorId;
-  newWarning.x = x;
-  newWarning.y = y;
-  newWarning.direction = Math.PI/4;
-  newWarning.type = satelliteTypes[meteorId];
+  newWarning.type = m.type;
+
+  newWarning.x = 0;
+  newWarning.y = 0;
+  newWarning.direction = 0;
 
   gs.warnings.push(newWarning);
 }

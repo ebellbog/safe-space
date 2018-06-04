@@ -27,6 +27,7 @@ const fragmentSize = .6
 const meteorBaseSpeed = .6;
 
 const warningSize = 35;
+const warningMargin = 8;
 const arrowSize = 14;
 const arrowWidth = .4;
 
