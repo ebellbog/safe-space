@@ -151,8 +151,7 @@ function updateMeteors() {
     }
 
     // test for collision with line
-    Object.keys(gs.connections).forEach(y=>{
-      const c = gs.connections[y];
+    gs.connections.forEach(c=>{
       if (c.color != m.type.color || c.phaseOut) return;
 
       const dist = distToLine(c.p1, c.p2, getMeteorCenter(m));

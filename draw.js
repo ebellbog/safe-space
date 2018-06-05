@@ -256,6 +256,34 @@ function drawSatellites(ctx) {
 }
 
 function drawConnections(ctx) {
+  // draw existing connections
+  ctx.lineWidth = 7;
+  gs.connections = gs.connections.filter(cnctn=>{
+    ctx.save();
+    if (cnctn.phaseOut) {
+      const phaseDuration = 0.6;
+      const elapsed = getElapsed(cnctn.phaseOut);
+
+      if (elapsed > phaseDuration) {
+        removeConnection(cnctn);
+        return;
+      }
+
+      ctx.setLineDash([20-elapsed*(20/phaseDuration),
+                       elapsed*(20/phaseDuration)]);
+      ctx.lineWidth = 7-elapsed*(7/phaseDuration);
+    }
+
+    ctx.strokeStyle = cnctn.color;
+    ctx.beginPath();
+    ctx.moveTo(...cnctn.p1);
+    ctx.lineTo(...cnctn.p2);
+    ctx.stroke();
+    ctx.restore();
+
+    return cnctn;
+  });
+
   // connect currently selected satellites
   ctx.save();
   ctx.lineCap = 'round';
@@ -304,33 +332,6 @@ function drawConnections(ctx) {
   }
 
   ctx.restore();
-
-  // draw existing connections
-  ctx.lineWidth = 7;
-  Object.keys(gs.connections).forEach(k=>{
-    ctx.save();
-    const cnctn = gs.connections[k];
-    if (cnctn.phaseOut) {
-      const phaseDuration = 0.6;
-      const elapsed = getElapsed(cnctn.phaseOut);
-
-      if (elapsed > phaseDuration) {
-        removeConnection(k);
-        return;
-      }
-
-      ctx.setLineDash([20-elapsed*(20/phaseDuration),
-                       elapsed*(20/phaseDuration)]);
-      ctx.lineWidth = 7-elapsed*(7/phaseDuration);
-    }
-
-    ctx.strokeStyle = cnctn.color;
-    ctx.beginPath();
-    ctx.moveTo(...cnctn.p1);
-    ctx.lineTo(...cnctn.p2);
-    ctx.stroke();
-    ctx.restore();
-  });
 }
 
 function drawPlayers(ctx) {

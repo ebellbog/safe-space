@@ -26,18 +26,16 @@ function createConnection(id1,id2) {
   newConnection.p2 = [s2.x,s2.y];
   newConnection.color = s1.type.color;
 
-  gs.connections[generateId()] = newConnection;
+  gs.connections.push(newConnection);
   gs.connected.add(id1).add(id2);
   for (let i = 0; i < 2; i++) {
     if (gs.selected[i] == id1 || gs.selected[i] == id2) gs.selected[i] = -1;
   }
 }
 
-function removeConnection(cId) {
-  const c = gs.connections[cId];
+function removeConnection(c) {
   gs.connected.delete(c.id1);
   gs.connected.delete(c.id2);
-  delete(gs.connections[cId]);
 }
 
 function addMeteor() {

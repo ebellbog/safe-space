@@ -128,7 +128,7 @@ function startGame() {
     highlighted: [-1,-1],
     selected: [-1,-1],
     connected: new Set(),
-    connections: {},
+    connections: [],
     validConnection: [false, false],
     stars: [],
     meteors: {},
