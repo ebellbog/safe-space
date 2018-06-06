@@ -56,6 +56,22 @@ function distToLine(l1,l2,p) {
   return getDist(closest,p);
 }
 
+function perpSegment(p1, p2, length) {
+  const dy = p2[1]-p1[1];
+  const dx = p2[0]-p1[0];
+  const dist = getDist(p1,p2);
+
+  let angle = Math.asin(dy/dist);
+  if (dx < 0) angle = Math.PI-angle;
+  const perpAngle = angle+Math.PI/2;
+
+  const s1 = [p2[0]+Math.cos(perpAngle)*length/2,
+              p2[1]+Math.sin(perpAngle)*length/2];
+  const s2 = [p2[0]-Math.cos(perpAngle)*length/2,
+              p2[1]-Math.sin(perpAngle)*length/2];
+  return [s1, s2];
+}
+
 function isSelected(k) {
   return (gs.selected[0] == k || gs.selected[1] == k);
 }

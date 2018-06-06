@@ -93,13 +93,23 @@ function updatePlayers() {
 }
 
 function updateMeteors() {
+  // move existing meteors
   const gravityScale = 0.3;
   const speedScale = gs.meteorSpeed / meteorBaseSpeed;
   const timeScale = getTimeScale();
 
-  // move existing meteors
   Object.keys(gs.meteors).forEach(k=>{
     const m = gs.meteors[k];
+
+    // add point to trail
+    const center = getMeteorCenter(m);
+    if (getDist(m.trail.slice(-1)[0], center) > trailInterval) {
+      m.trail.push(center);
+      const diff = m.trail.length -
+                   trailMax[m.motion=='gravity' ? 1 : 0];
+      if (diff > 0) m.trail.splice(0, diff);
+    }
+
     let scale = speedScale * timeScale;
 
     if (m.motion == 'gravity') {

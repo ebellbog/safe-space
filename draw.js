@@ -105,8 +105,11 @@ function drawStars(ctx) {
 }
 
 function drawMeteors(ctx) {
-  Object.keys(gs.meteors).forEach(
-      k=>drawMeteor(ctx, gs.meteors[k]));
+  Object.keys(gs.meteors).forEach(k=>{
+    const m = gs.meteors[k];
+    drawMeteorTrail(ctx, m);
+    drawMeteor(ctx, m)
+  });
 }
 
 function drawMeteor(ctx, m) {
@@ -122,10 +125,6 @@ function drawMeteor(ctx, m) {
 
   ctx.fillStyle = gradient;
   ctx.strokeStyle = m.type.color;
-  ctx.lineWidth = 1.4;
-
-  ctx.shadowColor = m.type.color;
-  ctx.shadowBlur = 18;
 
   ctx.beginPath();
   ctx.moveTo(...getMeteorCoord(m,0));
@@ -135,9 +134,22 @@ function drawMeteor(ctx, m) {
   ctx.closePath();
 
   ctx.fill();
+
+  // create shadow blur effect more efficiently
+  ctx.lineWidth = 1;
   ctx.stroke();
+
+  ctx.lineWidth = 3;
+  ctx.globalAlpha = .4;
+  ctx.stroke();
+
+  ctx.lineWidth = 6;
+  ctx.globalAlpha = .2;
+  ctx.stroke();
+
   ctx.restore();
 
+  // draw symbol at center of meteor
   const polyColor = grv ? 'rgba(40,40,40,0.8)':
                           'rgba(96,75,57,0.65)';
   drawPolygon(ctx,
@@ -145,6 +157,35 @@ function drawMeteor(ctx, m) {
               m.type.sides, meteorSize/1.7,
               {color: polyColor,
                style:'fill', rotation:m.rotation});
+}
+
+function drawMeteorTrail(ctx, m) {
+  ctx.save();
+  for (let i = 0; i < m.trail.length-3; i++) {
+    const l1 = getSegmentLength(i, m.trail.length);
+    const l2 = getSegmentLength(i+1, m.trail.length);
+
+    const s1 = perpSegment(m.trail[i], m.trail[i+1], l1);
+    const s2 = perpSegment(m.trail[i+1], m.trail[i+2], l2);
+
+    ctx.fillStyle = m.type.color;
+    ctx.strokeStyle = m.type.color;
+    ctx.globalAlpha = i/m.trail.length;
+    ctx.lineWidth = .5;
+
+    ctx.beginPath();
+    ctx.moveTo(...s1[0]);
+    ctx.lineTo(...s2[0]);
+    ctx.lineTo(...s2[1]);
+    ctx.lineTo(...s1[1]);
+    ctx.stroke();
+    ctx.fill();
+  }
+  ctx.restore();
+}
+
+function getSegmentLength(index, trailLength) {
+  return 1.9*meteorSize*(index/trailLength);
 }
 
 function generateMeteorPoints() {

@@ -78,6 +78,8 @@ function addMeteor() {
     }
   }
 
+  newMeteor.trail = [[newMeteor.x, newMeteor.y]];
+
   newMeteor.dt = randOffset(.03);
   newMeteor.dx = cWidth/2-newMeteor.x;
   newMeteor.dy = cHeight/2-newMeteor.y;
