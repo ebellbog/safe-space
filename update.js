@@ -94,12 +94,18 @@ function updatePlayers() {
 
 function updateMeteors() {
   // move existing meteors
-  const gravityScale = 0.3;
+  const gravityScale = 0.4;
   const speedScale = gs.meteorSpeed / meteorBaseSpeed;
   const timeScale = getTimeScale();
 
   Object.keys(gs.meteors).forEach(k=>{
     const m = gs.meteors[k];
+
+    if (m.phaseOut) {
+      if (getElapsed(m.phaseOut) > trailPhaseDuration)
+        delete(gs.meteors[k]);
+      return;
+    }
 
     // add point to trail
     const center = getMeteorCenter(m);
@@ -146,8 +152,7 @@ function updateMeteors() {
     if (dist < earthRadius+meteorSize) {
       gs.shakeEarth = Date.now();
 
-      delete(gs.meteors[k]);
-      addExplosion(m.x, m.y);
+      phaseMeteor(m);
       playSound('explosion');
 
       gs.hits += 1;
@@ -166,10 +171,8 @@ function updateMeteors() {
 
       const dist = distToLine(c.p1, c.p2, getMeteorCenter(m));
       if (dist < meteorSize) {
-        c.phaseOut = Date.now();
-
-        delete(gs.meteors[k]);
-        addExplosion(m.x, m.y);
+        phaseConnection(c);
+        phaseMeteor(m);
         playSound('zap');
 
         gs.meteorsStopped += 1;
@@ -260,6 +263,7 @@ function updateDebug() {
 
   const nextMeteor = gs.nextMeteor-getElapsed(gs.lastMeteorTime);
   debugInfo += "<br>Next meteor in: "+roundTo(nextMeteor,2)+"<br>";
+  debugInfo += "Meteors in play: "+Object.keys(gs.meteors).length+"<br>";
 
   debugInfo += "<br>Meteor frequency: "+
                roundTo(gs.meteorFrequency,2)+"<br>";

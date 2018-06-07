@@ -108,7 +108,7 @@ function drawMeteors(ctx) {
   Object.keys(gs.meteors).forEach(k=>{
     const m = gs.meteors[k];
     drawMeteorTrail(ctx, m);
-    drawMeteor(ctx, m)
+    if (!m.phaseOut) drawMeteor(ctx, m);
   });
 }
 
@@ -162,15 +162,15 @@ function drawMeteor(ctx, m) {
 function drawMeteorTrail(ctx, m) {
   ctx.save();
   for (let i = 0; i < m.trail.length-3; i++) {
-    const l1 = getSegmentLength(i, m.trail.length);
-    const l2 = getSegmentLength(i+1, m.trail.length);
+    const l1 = getSegmentLength(i, m);
+    const l2 = getSegmentLength(i+1, m);
 
     const s1 = perpSegment(m.trail[i], m.trail[i+1], l1);
     const s2 = perpSegment(m.trail[i+1], m.trail[i+2], l2);
 
     ctx.fillStyle = m.type.color;
     ctx.strokeStyle = m.type.color;
-    ctx.globalAlpha = i/m.trail.length*(m.motion == 'gravity' ? .75 : .6);
+    ctx.globalAlpha = getSegmentAlpha(i, m);
     ctx.lineWidth = .5;
 
     ctx.beginPath();
@@ -190,24 +190,19 @@ function drawMeteorTrail(ctx, m) {
   ctx.restore();
 }
 
-function getSegmentLength(index, trailLength) {
-  return 2.1*meteorSize*(index/trailLength);
+function getSegmentLength(i, m) {
+  return 2.1*meteorSize*(i/m.trail.length);
 }
 
-function generateMeteorPoints() {
-  const count = 6+randInt(6);
-  const points = [];
+function getSegmentAlpha(i, m) {
+  let alpha =  i/m.trail.length;
+  alpha *= (m.motion == 'gravity' ? .75 : .6);
 
-  let theta = 0, r;
-  while (theta < Math.PI*2) {
-    r = meteorSize+randOffset(7);
-    theta += .1+randFloat(2*Math.PI/count-.1);
-    theta = Math.min(theta, Math.PI*2);
-
-    points.push([r, theta]);
+  if (m.phaseOut) {
+    alpha *= (trailPhaseDuration-getElapsed(m.phaseOut))/
+      trailPhaseDuration;
   }
-
-  return points;
+  return alpha;
 }
 
 function getMeteorCoord(m,i) {

@@ -27,6 +27,7 @@ const fragmentSize = .6
 const meteorBaseSpeed = .6;
 const trailMax = [30, 130];
 const trailInterval = 3;
+const trailPhaseDuration = .3;
 
 const warningSize = 35;
 const warningMargin = 8;

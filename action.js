@@ -33,6 +33,10 @@ function createConnection(id1,id2) {
   }
 }
 
+function phaseConnection(c) {
+  c.phaseOut = Date.now();
+}
+
 function removeConnection(c) {
   gs.connected.delete(c.id1);
   gs.connected.delete(c.id2);
@@ -112,7 +116,28 @@ function addMeteor() {
   gs.meteors[generateId()] = newMeteor;
 }
 
-function addExplosion(x,y) {
+function phaseMeteor(m) {
+  addExplosion(m);
+  m.phaseOut = Date.now();
+}
+
+function generateMeteorPoints() {
+  const count = 6+randInt(6);
+  const points = [];
+
+  let theta = 0, r;
+  while (theta < Math.PI*2) {
+    r = meteorSize+randOffset(7);
+    theta += .1+randFloat(2*Math.PI/count-.1);
+    theta = Math.min(theta, Math.PI*2);
+
+    points.push([r, theta]);
+  }
+
+  return points;
+}
+
+function addExplosion(m) {
   const newExplosion = {
     fragments: []
   }
@@ -121,13 +146,22 @@ function addExplosion(x,y) {
    const newFragment = {};
    const angle = randFloat(Math.PI*2);
 
-   newFragment.x = x;
-   newFragment.y = y;
+   newFragment.x = m.x;
+   newFragment.y = m.y;
    newFragment.dx = 2.8*Math.cos(angle);
    newFragment.dy = 2.8*Math.sin(angle);
-   newFragment.color = `rgb(${143+randInt(30)},
-                            ${112+randInt(30)},
-                            ${86+randInt(30)})`;
+
+   if (m.motion == 'gravity') {
+     const value = 5+randInt(65);
+     newFragment.color = `rgb(${value},
+                              ${value},
+                              ${value})`;
+   } else {
+     newFragment.color = `rgb(${143+randInt(30)},
+                              ${112+randInt(30)},
+                              ${86+randInt(30)})`;
+   }
+
    newFragment.size = fragmentSize+randFloat(.3)
    newFragment.points = generateMeteorPoints();
 
