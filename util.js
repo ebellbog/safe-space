@@ -69,7 +69,7 @@ function perpSegment(p1, p2, length) {
               p2[1]+Math.sin(perpAngle)*length/2];
   const s2 = [p2[0]-Math.cos(perpAngle)*length/2,
               p2[1]-Math.sin(perpAngle)*length/2];
-  return [s1, s2];
+  return [s1, s2, perpAngle];
 }
 
 function isSelected(k) {

@@ -170,7 +170,7 @@ function drawMeteorTrail(ctx, m) {
 
     ctx.fillStyle = m.type.color;
     ctx.strokeStyle = m.type.color;
-    ctx.globalAlpha = i/m.trail.length;
+    ctx.globalAlpha = i/m.trail.length*(m.motion == 'gravity' ? .75 : .6);
     ctx.lineWidth = .5;
 
     ctx.beginPath();
@@ -180,12 +180,18 @@ function drawMeteorTrail(ctx, m) {
     ctx.lineTo(...s1[1]);
     ctx.stroke();
     ctx.fill();
+
+    if (i == m.trail.length-4) {
+      ctx.beginPath();
+      ctx.arc(...m.trail[i+2], l2/2, s2[2]-Math.PI, s2[2]);
+      ctx.fill();
+    }
   }
   ctx.restore();
 }
 
 function getSegmentLength(index, trailLength) {
-  return 1.9*meteorSize*(index/trailLength);
+  return 2.1*meteorSize*(index/trailLength);
 }
 
 function generateMeteorPoints() {
@@ -217,9 +223,7 @@ function getMeteorCoord(m,i) {
 }
 
 function getMeteorCenter(m) {
-  const x = m.x + m.offset*Math.cos(m.rotation);
-  const y = m.y + m.offset*Math.sin(m.rotation);
-  return [x,y];
+  return [m.x, m.y];
 }
 
 function drawExplosions(ctx) {

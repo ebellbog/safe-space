@@ -43,7 +43,6 @@ function addMeteor() {
   newMeteor.points = generateMeteorPoints();
   newMeteor.type = satelliteTypes[randInt(5)];
   newMeteor.rotation = randFloat(2*Math.PI);
-  newMeteor.offset = randInt(meteorSize/2);
 
   const grav = Math.random() < gs.gravityProbability;
   if (grav) newMeteor.motion = 'gravity';
