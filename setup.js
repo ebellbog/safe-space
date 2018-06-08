@@ -1,6 +1,6 @@
 function alignElements() {
-  const gHeight = window.innerHeight;//$game.height();
-  const gWidth = window.innerWidth;//$game.width();
+  const gHeight = window.innerHeight;
+  const gWidth = window.innerWidth;
 
   let scale, earthScale;
   const aspect = gHeight/gWidth;
@@ -32,6 +32,11 @@ function alignElements() {
               .css('margin', `${10*scale}px`)
               .css('right', $game.offset().left)
               .css('bottom', $game.offset().top);
+  $('#help').css('font-size', `${36*scale}px`)
+            .css('padding', `${10*scale}px ${20*scale}px
+                             ${10*scale}px ${20*scale}px`)
+            .css('bottom', $game.offset().top+50*scale)
+            .css('border-radius', 15*scale);
 }
 
 function setupStars() {

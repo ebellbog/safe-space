@@ -1,6 +1,8 @@
 let animationId;
 
 $(document).ready(function(){
+  $timer = $('#timer');
+
   let $game = $('#game');
   gameCtx = $game[0].getContext('2d');
   cWidth = parseInt($game.attr('width'));
@@ -107,7 +109,7 @@ $(document).ready(function(){
         endGame();
         break;
       case 13: // return (for testing)
-        addMeteor();
+        flashHelp('Watch out! Meteor incoming!', 1500);
         break;
       default:
         gs.heldKeys.add(e.which);

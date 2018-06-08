@@ -343,3 +343,17 @@ td#screenshot-wrapper {
   padding: 15px;
   z-index: 10;
 }
+
+/* font-size, padding, bottom, border-radius
+   are set in alignElements */
+#help {
+  font-weight: 100;
+  text-align: center;
+  background-color: rgba(28,28,28,0.8);
+  color: white;
+  position: absolute;
+  left: 50%;
+  transform: translate(-50%, 0);
+  z-index: 10;
+  opacity: 0;
+}

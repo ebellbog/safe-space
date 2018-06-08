@@ -232,7 +232,7 @@ function updateTimer() {
   const zero = sec < 10 ? '0' : '';
 
   const timeString = `${min}:${zero}${sec}`;
-  $('#timer').html(timeString);
+  $timer.html(timeString);
 }
 
 function updateHealth() {

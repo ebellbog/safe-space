@@ -185,3 +185,15 @@ function addWarning(meteorId) {
   m.warningId = wId;
   gs.warnings[wId] = newWarning;
 }
+
+function flashHelp(text, duration) {
+  const displayDuration = duration || 5000;
+  const fadeDuration = 1000;
+
+  $('#help').html(text)
+            .animate({opacity: 1}, fadeDuration, ()=> {
+    setTimeout(()=>{
+      $('#help').animate({opacity: 0}, fadeDuration);
+    }, displayDuration);
+  });
+}
