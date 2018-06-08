@@ -58,6 +58,16 @@ body {
 #title {
   font-size: 72px;
   margin-top: 10px;
+  animation-name: glow;
+  animation-duration: 2s;
+  animation-direction: alternate;
+  animation-iteration-count: infinite;
+  animation-timing-function: ease-in-out;
+}
+
+@keyframes glow {
+  from {text-shadow: 0 0 20px rgba(255,255,255,1)}
+  to {text-shadow: 0 0 20px rgba(255,255,255,.5)}
 }
 
 #tagline {
@@ -327,7 +337,16 @@ td#screenshot-wrapper {
 .indicator {
   color: black;
   font-weight: 600;
-  margin: 0 10px 0 10px;
+  animation-name: indicate;
+  animation-duration: .8s;
+  animation-direction: alternate;
+  animation-iteration-count: infinite;
+  animation-timing-function: ease-in-out;
+}
+
+@keyframes indicate {
+  from {margin: 0 10px 0 10px;}
+  to {margin: 0 18px 0 18px;}
 }
 
 #debug {

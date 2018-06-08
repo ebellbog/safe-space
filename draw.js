@@ -84,13 +84,6 @@ function drawLogo(ctx) {
     ctx.lineTo(...p2);
     ctx.stroke();
   }
-
-  $('#title').css('text-shadow',
-      `0 0 20px rgba(255,255,255,
-      ${0.75+.25*Math.sin(2*elapsed)})`);
-
-  const margin = 14+4*Math.sin(4*elapsed);
-  $('.indicator').css('margin', margin);
 }
 
 function drawStars(ctx) {
