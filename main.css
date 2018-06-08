@@ -251,11 +251,11 @@ body {
   font-weight: 600;
   text-shadow: 0 0 15px #ccc;
   text-align: center;
-  padding-top: 25px;
+  padding-top: 20px;
 }
 
 td#instructions-wrapper {
-  padding: 10px 0 10px 50px;
+  padding-left: 45px;
 }
 
 .howto-instruction {
@@ -271,36 +271,41 @@ td#instructions-wrapper {
   margin-top: 0;
 }
 .howto-instruction:nth-child(1) .instruction-number {
-  color: tomato;
+  background-color: tomato;
 }
 .howto-instruction:nth-child(2) .instruction-number {
-  color: yellow;
+  background-color: yellow;
 }
 .howto-instruction:nth-child(3) .instruction-number {
-  color: limegreen;
+  background-color: limegreen;
 }
 .howto-instruction:nth-child(4) .instruction-number {
-  color: cyan;
+  background-color: cyan;
 }
 .howto-instruction:nth-child(5) .instruction-number {
-  color: blueviolet;
+  background-color: blueviolet;
 }
 .howto-instruction:nth-child(5) {
   margin-bottom: 0;
 }
 .instruction-number {
-  font-size: 60px;
-  line-height: 48px;
+  color: white;
+  text-shadow: 2px 2px 0 rgba(0,0,0,0.75);
+  font-size: 54px;
   font-weight: 400;
-  text-shadow: 1px 1px 10px #222;
   vertical-align: top;
-  margin: 0;
-  width: 54px;
+  text-align: center;
+  margin: 5px 18px 0 0;
+  width: 64px;
+  height: 64px;
+  line-height: 58px;
+  border-radius: 36px;
+  border: 4px solid white;
 }
 
 .instruction-contents {
   color: white;
-  font-size: 25px;
+  font-size: 26px;
   font-weight: 200;
   text-shadow: 1px 1px 2px #333;
   width: 80%;
@@ -311,7 +316,7 @@ td#instructions-wrapper {
 }
 
 td#screenshot-wrapper {
-  width: 60%;
+  width: 50%;
 }
 
 #footer {
@@ -322,7 +327,7 @@ td#screenshot-wrapper {
   color: #aaa;
   font-size: 30px;
   font-weight: 400;
-  padding-bottom: 25px;
+  padding-bottom: 20px;
 }
 
 .screenshot {
