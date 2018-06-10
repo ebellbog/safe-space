@@ -350,10 +350,12 @@ function drawConnections(ctx) {
       if (valid) {
         ctx.setLineDash([]);
         ctx.globalAlpha = 0.5;
+        ctx.strokeStyle = s.type.color;
       }
       else {
         ctx.setLineDash([1,16]);
         ctx.globalAlpha = 0.8;
+        ctx.strokeStyle = '#aaa';
       }
 
       ctx.lineWidth = 7;
@@ -373,20 +375,36 @@ function drawPlayers(ctx) {
   }
 }
 
-function drawPlayer(ctx, x, y, player, color) {
+function drawPlayer(ctx, x, y, player) {
   ctx.save();
-  const s = gs.selected[otherPlayer(player)];
-  if (color) {
-    ctx.fillStyle=color;
-  }
-  else if (s == -1) {
-    ctx.fillStyle = player ? 'black' : 'white';
-    ctx.shadowColor = player ? 'rgba(255,255,255,0.9)' : 'rgba(0,0,0,0.75)';
-  } else {
-    ctx.fillStyle =  gs.satellites[s].type.color;
-    ctx.shadowColor = 'black';
-  }
+  ctx.shadowColor = 'rgba(0,0,0,.75)';
   ctx.shadowBlur = 12;
+
+  const s = gs.selected[otherPlayer(player)];
+  if (s == -1) {
+    ctx.fillStyle = player ? 'black' : 'white';
+    if (player == 1) ctx.shadowColor = 'rgba(255,255,255,0.9)';
+  } else {
+    if (gs.validConnection[player] ||
+        (gs.selected[player] > -1 &&
+         gs.validConnection[otherPlayer(player)])) {
+      ctx.shadowColor = 'black';
+      ctx.fillStyle =  gs.satellites[s].type.color;
+    } else {
+      const xSize = playerSize/3;
+      ctx.strokeStyle = '#aaa';
+      ctx.lineWidth = 5;
+
+      ctx.beginPath();
+      ctx.moveTo(x-xSize, y-xSize);
+      ctx.lineTo(x+xSize, y+xSize);
+      ctx.moveTo(x+xSize, y-xSize);
+      ctx.lineTo(x-xSize, y+xSize);
+      ctx.stroke();
+      ctx.restore();
+      return;
+    }
+  }
 
   const topLeft = [x-playerSize/2, y-playerSize/2+playerMargin];
   const topRight = [x+playerSize/2, y-playerSize/2+playerMargin];

@@ -6,6 +6,7 @@ function update() {
   updatePlayers();
   updateTimer();
   updateDifficulty();
+  if (gs.level == 0) updateHelp();
   if (debug) updateDebug();
 }
 
@@ -98,6 +99,7 @@ function updateMeteors() {
   const speedScale = gs.meteorSpeed / meteorBaseSpeed;
   const timeScale = getTimeScale();
 
+  let closestMeteor, minDist = cWidth;
   Object.keys(gs.meteors).forEach(k=>{
     const m = gs.meteors[k];
 
@@ -149,6 +151,10 @@ function updateMeteors() {
 
     // test for collision with planet
     const dist = distToCenter(...getMeteorCenter(m));
+    if (dist < minDist) {
+      minDist = dist;
+      closestMeteor = m;
+    }
     if (dist < earthRadius+meteorSize) {
       gs.shakeEarth = Date.now();
 
@@ -180,6 +186,11 @@ function updateMeteors() {
       }
     });
   });
+
+  if (gs.help) {
+    gs.help.data.closestMeteor = closestMeteor;
+    gs.help.data.minDist = minDist;
+  }
 
   // add new meteor
   if (getElapsed(gs.lastMeteorTime) > gs.nextMeteor
@@ -306,4 +317,35 @@ function updateWarnings() {
     w.direction = Math.PI*2-Math.asin((w.y-m.y)/dist);
     if (m.x < w.x) w.direction = Math.PI-w.direction;
   });
+}
+
+function updateHelp() {
+  if (!gs.help) {
+    gs.help = {displaying: false,
+               messages: {},
+               timers: {},
+               data: {}};
+    Object.keys(helpMessages).forEach(k=>
+        gs.help.messages[k]=false);
+  }
+
+  const meteorIds = Object.keys(gs.meteors);
+  if (meteorIds.length > 0) {
+    if (!gs.help.timers.meteor) {
+      gs.help.timers.meteor = Date.now();
+    }
+
+    if (gs.help.messages.meteor == false &&
+        getElapsed(gs.help.timers.meteor) > 3) {
+        gs.help.messages.meteor =
+          flashHelp(helpMessages.meteor, 3000);
+    }
+
+    if (gs.help.messages.grabFirst == false) {
+      if (gs.help.data.closestDist < 400) {
+          gs.help.messages.grabFirst =
+            flashHelp(helpMessages.grabFirst, 4000);
+      }
+    }
+  }
 }

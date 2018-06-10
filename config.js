@@ -46,17 +46,24 @@ const levels = [
   'Hard'
 ];
 
+const helpMessages = {
+  meteor: "Watch out - a meteor's heading for Earth!",
+  grabFirst: "Trying grabbing a satellite that matches the color of the meteor",
+  grabSecond: '',
+  connect: ''
+}
+
 function configureLevel(level) {
   switch(level) {
     case 0:
       gs.startHealth = 5;
 
-      gs.meteorSpeed = meteorBaseSpeed-.1; // .5
-      gs.speedDelta = .075;
-      gs.maxSpeed = 1.5;
+      gs.meteorSpeed = meteorBaseSpeed-.2; // .4
+      gs.speedDelta = .08;
+      gs.maxSpeed = 1.75;
 
-      gs.meteorFrequency = 8;
-      gs.frequencyDelta = .6;
+      gs.meteorFrequency = 5;
+      gs.frequencyDelta = .3;
       gs.minFrequency = 1.5;
 
       gs.maxMeteors = 4;
@@ -68,15 +75,15 @@ function configureLevel(level) {
     case 1:
       gs.startHealth = 3;
 
-      gs.meteorSpeed = meteorBaseSpeed+.2; // .8
+      gs.meteorSpeed = meteorBaseSpeed; // .6
       gs.speedDelta = .1;
-      gs.maxSpeed = 2.3;
+      gs.maxSpeed = 2;
 
-      gs.meteorFrequency = 5;
-      gs.frequencyDelta = .75;
-      gs.minFrequency = .5;
+      gs.meteorFrequency = 4;
+      gs.frequencyDelta = .3;
+      gs.minFrequency = .7;
 
-      gs.maxMeteors = 6;
+      gs.maxMeteors = 5;
       gs.nextMeteor = 3;
       gs.accelerateDelay = 30;
 
@@ -85,15 +92,15 @@ function configureLevel(level) {
     case 2:
       gs.startHealth = 4;
 
-      gs.meteorSpeed = meteorBaseSpeed+.4; // 1
+      gs.meteorSpeed = meteorBaseSpeed+.2; // .8
       gs.speedDelta = .15;
       gs.maxSpeed = 2.5;
 
-      gs.meteorFrequency = 4;
-      gs.frequencyDelta = .6;
+      gs.meteorFrequency = 3;
+      gs.frequencyDelta = .4;
       gs.minFrequency = .5;
 
-      gs.maxMeteors = 8;
+      gs.maxMeteors = 7;
       gs.nextMeteor = 2;
       gs.accelerateDelay = 25;
 

@@ -186,14 +186,20 @@ function addWarning(meteorId) {
   gs.warnings[wId] = newWarning;
 }
 
+// returns whether help could be displayed
 function flashHelp(text, duration) {
+  if (gs.help.displaying) return false;
+  gs.help.displaying = true;
+
   const displayDuration = duration || 5000;
   const fadeDuration = 1000;
 
   $('#help').html(text)
             .animate({opacity: 1}, fadeDuration, ()=> {
     setTimeout(()=>{
-      $('#help').animate({opacity: 0}, fadeDuration);
+      $('#help').animate({opacity: 0}, fadeDuration,
+                 ()=>gs.help.displaying=false);
     }, displayDuration);
   });
+  return true;
 }
