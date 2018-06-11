@@ -273,8 +273,12 @@ function updateDebug() {
   debugInfo += "Framerate: 1/"+Math.floor(1/framerate)+"<br>";
 
   const nextMeteor = gs.nextMeteor-getElapsed(gs.lastMeteorTime);
+  const meteorCount = Object.keys(gs.meteors).length;
   debugInfo += "<br>Next meteor in: "+roundTo(nextMeteor,2)+"<br>";
-  debugInfo += "Meteors in play: "+Object.keys(gs.meteors).length+"<br>";
+  debugInfo += "Meteors in play: "+meteorCount+"<br>";
+  if (gs.help && meteorCount > 0) debugInfo += "Closest meteor: "
+                                  +roundTo(gs.help.data.minDist,2)
+                                  +"<br>";
 
   debugInfo += "<br>Meteor frequency: "+
                roundTo(gs.meteorFrequency,2)+"<br>";
@@ -336,13 +340,13 @@ function updateHelp() {
     }
 
     if (gs.help.messages.meteor == false &&
-        getElapsed(gs.help.timers.meteor) > 3) {
+        getElapsed(gs.help.timers.meteor) > 4) {
         gs.help.messages.meteor =
-          flashHelp(helpMessages.meteor, 3000);
+          flashHelp(helpMessages.meteor, 4000);
     }
 
     if (gs.help.messages.grabFirst == false) {
-      if (gs.help.data.closestDist < 400) {
+      if (gs.help.data.minDist < 400) {
           gs.help.messages.grabFirst =
             flashHelp(helpMessages.grabFirst, 4000);
       }

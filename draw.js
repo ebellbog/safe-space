@@ -377,13 +377,13 @@ function drawPlayers(ctx) {
 
 function drawPlayer(ctx, x, y, player) {
   ctx.save();
-  ctx.shadowColor = 'rgba(0,0,0,.75)';
   ctx.shadowBlur = 12;
 
   const s = gs.selected[otherPlayer(player)];
   if (s == -1) {
     ctx.fillStyle = player ? 'black' : 'white';
-    if (player == 1) ctx.shadowColor = 'rgba(255,255,255,0.9)';
+    ctx.shadowColor = player ? 'rgba(255,255,255,0.9)'
+                             : 'rgba(0,0,0,.75)';
   } else {
     if (gs.validConnection[player] ||
         (gs.selected[player] > -1 &&
@@ -391,7 +391,8 @@ function drawPlayer(ctx, x, y, player) {
       ctx.shadowColor = 'black';
       ctx.fillStyle =  gs.satellites[s].type.color;
     } else {
-      const xSize = playerSize/3;
+      const xSize = playerSize/3.2;
+      ctx.shadowColor = 'rgba(0,0,0,.45)';
       ctx.strokeStyle = '#aaa';
       ctx.lineWidth = 5;
 

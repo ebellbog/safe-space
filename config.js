@@ -47,8 +47,8 @@ const levels = [
 ];
 
 const helpMessages = {
-  meteor: "Watch out - a meteor's heading for Earth!",
-  grabFirst: "Trying grabbing a satellite that matches the color of the meteor",
+  meteor: "There's a meteor heading for Earth! Try connecting two satellites to block it.",
+  grabFirst: "Use your joystick & joy buttons to grab and hold a satellite that matches the color of an incoming meteor.",
   grabSecond: '',
   connect: ''
 }

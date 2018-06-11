@@ -251,7 +251,7 @@ body {
   font-weight: 600;
   text-shadow: 0 0 15px #ccc;
   text-align: center;
-  padding-top: 20px;
+  padding-top: 15px;
 }
 
 td#instructions-wrapper {
@@ -324,10 +324,11 @@ td#screenshot-wrapper {
 }
 
 #footer td {
-  color: #aaa;
-  font-size: 30px;
+  color: #222;
+  text-shadow: 0 0 4px #ddd;
+  font-size: 24px;
   font-weight: 400;
-  padding-bottom: 20px;
+  padding-bottom: 16px;
 }
 
 .screenshot {
