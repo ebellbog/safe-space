@@ -49,8 +49,8 @@ const levels = [
 const helpMessages = {
   meteor: "There's a meteor heading for Earth! Try connecting two satellites to block it.",
   grabFirst: "Use your joystick & joy buttons to grab and hold a satellite that matches the color of an incoming meteor.",
-  grabSecond: '',
-  connect: ''
+  grabSecond: "Great! Now hold onto this satellite, while the other player grabs a matching one.",
+  connect: "Quick, hit the center button to complete your connection!"
 }
 
 function configureLevel(level) {

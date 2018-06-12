@@ -186,19 +186,38 @@ function addWarning(meteorId) {
   gs.warnings[wId] = newWarning;
 }
 
-// returns whether help could be displayed
-function flashHelp(text, duration) {
+function flashHelp(message, duration) {
+  if (message && duration) {
+    if (gs.help.flags[message]) return; // already displayed
+    gs.help.flags[message] = true;
+
+    // add data to queue
+    gs.help.queue.push([helpMessages[message], duration]);
+  }
+
+  // base case for recursion
+  if (gs.help.queue.length == 0) return;
+
+  // if already displaying, wait for tail call
   if (gs.help.displaying) return false;
   gs.help.displaying = true;
 
-  const displayDuration = duration || 5000;
+  // load (and remove) first item of queue
+  const next = gs.help.queue.shift();
+  const text = next[0];
+  const displayDuration = next[1];
   const fadeDuration = 1000;
 
   $('#help').html(text)
             .animate({opacity: 1}, fadeDuration, ()=> {
     setTimeout(()=>{
       $('#help').animate({opacity: 0}, fadeDuration,
-                 ()=>gs.help.displaying=false);
+                 ()=>{
+                   gs.help.displaying=false;
+
+                   //recurse until queue is empty
+                   setTimeout(flashHelp, 2000);
+                 });
     }, displayDuration);
   });
   return true;

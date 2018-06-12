@@ -99,7 +99,7 @@ function updateMeteors() {
   const speedScale = gs.meteorSpeed / meteorBaseSpeed;
   const timeScale = getTimeScale();
 
-  let closestMeteor, minDist = cWidth;
+  let closestMeteor = 0, minDist = cWidth;
   Object.keys(gs.meteors).forEach(k=>{
     const m = gs.meteors[k];
 
@@ -325,13 +325,17 @@ function updateWarnings() {
 
 function updateHelp() {
   if (!gs.help) {
-    gs.help = {displaying: false,
-               messages: {},
-               timers: {},
-               data: {}};
+    gs.help = {
+      queue: [],
+      displaying: false,
+      flags: {},
+      timers: {},
+      data: {}};
     Object.keys(helpMessages).forEach(k=>
-        gs.help.messages[k]=false);
+        gs.help.flags[k]=false);
   }
+
+  const data = gs.help.data;
 
   const meteorIds = Object.keys(gs.meteors);
   if (meteorIds.length > 0) {
@@ -339,16 +343,28 @@ function updateHelp() {
       gs.help.timers.meteor = Date.now();
     }
 
-    if (gs.help.messages.meteor == false &&
-        getElapsed(gs.help.timers.meteor) > 4) {
-        gs.help.messages.meteor =
-          flashHelp(helpMessages.meteor, 4000);
+    if (getElapsed(gs.help.timers.meteor) > 4) {
+          flashHelp('meteor', 4000);
     }
 
-    if (gs.help.messages.grabFirst == false) {
-      if (gs.help.data.minDist < 400) {
-          gs.help.messages.grabFirst =
-            flashHelp(helpMessages.grabFirst, 4000);
+    if (gs.hits > 0 || gs.help.data.minDist < 500) {
+      let matching = 0;
+      for (let i = 0; i < 2; i++) {
+        const selected = gs.selected[i];
+        if (selected > -1) {
+          const satellite = gs.satellites[selected];
+          if (satellite && data.closestMeteor
+              && satellite.type == data.closestMeteor.type)
+            matching += 1;
+        }
+      }
+
+      if (matching == 0) {
+        flashHelp('grabFirst', 4000);
+      } else if (matching == 1) {
+        flashHelp('grabSecond', 3000);
+      } else if (matching == 2) {
+        flashHelp('connect', 2000);
       }
     }
   }

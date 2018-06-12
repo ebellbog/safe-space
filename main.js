@@ -109,7 +109,6 @@ $(document).ready(function(){
         endGame();
         break;
       case 13: // return (for testing)
-        flashHelp('Watch out! Meteor incoming!', 1500);
         break;
       default:
         gs.heldKeys.add(e.which);
