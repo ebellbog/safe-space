@@ -62,7 +62,7 @@ function configureLevel(level) {
       gs.speedDelta = .08;
       gs.maxSpeed = 1.75;
 
-      gs.meteorFrequency = 5;
+      gs.meteorFrequency = 6;
       gs.frequencyDelta = .3;
       gs.minFrequency = 1.5;
 

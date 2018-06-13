@@ -183,6 +183,13 @@ function updateMeteors() {
 
         gs.meteorsStopped += 1;
         updateMeteorsStopped();
+
+        // stop displaying help once players have
+        // successfully stopped their first meteor
+        if (gs.meteorsStopped == 1 && gs.help) {
+          Object.keys(gs.help.flags).forEach(k=>
+            gs.help.flags[k]=true);
+        }
       }
     });
   });
