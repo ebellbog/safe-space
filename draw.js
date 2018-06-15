@@ -171,7 +171,6 @@ function drawMeteorTrail(ctx, m) {
     ctx.lineTo(...s2[0]);
     ctx.lineTo(...s2[1]);
     ctx.lineTo(...s1[1]);
-    ctx.stroke();
     ctx.fill();
 
     if (i == m.trail.length-4) {
