@@ -64,11 +64,11 @@ function configureLevel(level) {
 
       gs.meteorFrequency = 6;
       gs.frequencyDelta = .3;
-      gs.minFrequency = 1.5;
+      gs.minFrequency = 1.2;
 
       gs.maxMeteors = 4;
       gs.nextMeteor = 5;
-      gs.accelerateDelay = 30;
+      gs.accelerateDelay = 27;
 
       gs.gravityProbability = 0;
       break;

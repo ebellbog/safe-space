@@ -351,10 +351,10 @@ function updateHelp() {
     }
 
     if (getElapsed(gs.help.timers.meteor) > 4) {
-          flashHelp('meteor', 4000);
+          flashHelp('meteor', 3000);
     }
 
-    if (gs.hits > 0 || gs.help.data.minDist < 500) {
+    if (gs.hits > 0 && gs.data.minDist < 700) {
       let matching = 0;
       for (let i = 0; i < 2; i++) {
         const selected = gs.selected[i];
@@ -367,11 +367,11 @@ function updateHelp() {
       }
 
       if (matching == 0) {
-        flashHelp('grabFirst', 4000);
+        flashHelp('grabFirst', 4000, true);
       } else if (matching == 1) {
-        flashHelp('grabSecond', 3000);
+        flashHelp('grabSecond', 3000, true);
       } else if (matching == 2) {
-        flashHelp('connect', 2000);
+        flashHelp('connect', 2000, true);
       }
     }
   }

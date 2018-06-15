@@ -186,15 +186,19 @@ function addWarning(meteorId) {
   gs.warnings[wId] = newWarning;
 }
 
-function flashHelp(message, duration) {
-  if (gs.help.flags[message] || gs.help.displaying) return;
-
-  gs.help.flags[message] = true;
-  gs.help.displaying = true;
+function flashHelp(message, duration, repeat) {
+  if (gs.help.flags[message] || gs.help.displaying) return false;
 
   const text = helpMessages[message];
   const displayDuration = duration;
   const fadeDuration = 1000;
+  const repeatInterval = 5000;
+
+  gs.help.flags[message] = true;
+  gs.help.displaying = true;
+
+  if (repeat) setTimeout(()=>gs.help.flags[message]=false,
+                         repeatInterval);
 
   $('#help').html(text)
             .animate({opacity: 1}, fadeDuration,
@@ -204,4 +208,5 @@ function flashHelp(message, duration) {
                   gs.help.displaying=false,
                   2000)),
                 displayDuration));
+  return true;
 }
