@@ -27,6 +27,7 @@ const fragmentSize = .6
 const meteorBaseSpeed = .6;
 const trailMax = [30, 130];
 const trailInterval = 3;
+const intervalMax = 50;
 const trailPhaseDuration = .3;
 
 const warningSize = 35;
@@ -50,7 +51,11 @@ const helpMessages = {
   meteor: "There's a meteor heading for Earth! Try connecting two satellites to block it.",
   grabFirst: "Use your joystick & joy buttons to grab and hold a satellite that matches the color of an incoming meteor.",
   grabSecond: "Great! Now hold onto this satellite, while the other player grabs a matching one.",
-  connect: "Quick, hit the center button to complete your connection!"
+  connect: "Quick, hit the center button to complete your connection!",
+  hold: "Remember to keep holding the joy button! You'll lose your satellite if you let go.",
+  cross: "Careful! Connections can't cross Earth.",
+  missed: "The meteor got through! Connections only block meteors of the same color.",
+  congrats: "Nice job! You stopped a meteor and helped protect planet Earth."
 }
 
 function configureLevel(level) {

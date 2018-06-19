@@ -99,7 +99,7 @@ function updateMeteors() {
   const speedScale = gs.meteorSpeed / meteorBaseSpeed;
   const timeScale = getTimeScale();
 
-  let closestMeteor = 0, minDist = cWidth;
+  let minDist = cWidth;
   Object.keys(gs.meteors).forEach(k=>{
     const m = gs.meteors[k];
 
@@ -109,9 +109,15 @@ function updateMeteors() {
       return;
     }
 
-    // add point to trail
     const center = getMeteorCenter(m);
-    if (getDist(m.trail.slice(-1)[0], center) > trailInterval) {
+    const interval= getDist(m.trail.slice(-1)[0], center);
+
+    // reset trail if too much delay between points
+    // (likely due to switching tabs)
+    if (interval > intervalMax) m.trail = [center];
+
+    // add point to trail
+    else if (interval > trailInterval) {
       m.trail.push(center);
       const diff = m.trail.length -
                    trailMax[m.motion=='gravity' ? 1 : 0];
@@ -151,10 +157,7 @@ function updateMeteors() {
 
     // test for collision with planet
     const dist = distToCenter(...getMeteorCenter(m));
-    if (dist < minDist) {
-      minDist = dist;
-      closestMeteor = m;
-    }
+    if (dist < minDist) minDist = dist;
     if (dist < earthRadius+meteorSize) {
       gs.shakeEarth = Date.now();
 
@@ -165,6 +168,11 @@ function updateMeteors() {
       gs.redrawEarth = 1;
       updateHealth();
 
+      if (gs.help && gs.meteorsStopped == 0) {
+        gs.help.flags.grabFirst = 1;
+        gs.help.flags.grabSecond =1 ;
+      }
+
       if (gs.hits == gs.startHealth) setTimeout(()=> {
         cancelAnimationFrame(animationId);
         endGame();
@@ -173,10 +181,18 @@ function updateMeteors() {
 
     // test for collision with line
     gs.connections.forEach(c=>{
-      if (c.color != m.type.color || c.phaseOut) return;
+      if ((c.color != m.type.color && !gs.help) || c.phaseOut)
+        return;
 
       const dist = distToLine(c.p1, c.p2, getMeteorCenter(m));
       if (dist < meteorSize) {
+        if (gs.help) {
+          if (c.color != m.type.color) {
+            flashHelp('missed', 2);
+            return;
+          } else gs.help.flags.missed = 0;
+        }
+
         phaseConnection(c);
         phaseMeteor(m);
         playSound('zap');
@@ -184,20 +200,12 @@ function updateMeteors() {
         gs.meteorsStopped += 1;
         updateMeteorsStopped();
 
-        // stop displaying help once players have
-        // successfully stopped their first meteor
-        if (gs.meteorsStopped == 1 && gs.help) {
-          Object.keys(gs.help.flags).forEach(k=>
-            gs.help.flags[k]=true);
-        }
+        flashHelp('congrats', 3);
       }
     });
   });
 
-  if (gs.help) {
-    gs.help.data.closestMeteor = closestMeteor;
-    gs.help.data.minDist = minDist;
-  }
+  if (gs.help) gs.help.data.minDist = minDist;
 
   // add new meteor
   if (getElapsed(gs.lastMeteorTime) > gs.nextMeteor
@@ -305,6 +313,14 @@ function updateDebug() {
   debugInfo += "<br>Number of warnings: "+
                Object.keys(gs.warnings).length+"<br>";
 
+
+  if (gs.help) {
+    debugInfo += "<br> *Help flags* <br>";
+    Object.keys(gs.help.flags).forEach(k => {
+      debugInfo += `${k}: ${gs.help.flags[k]}<br>`;
+    });
+  }
+
   $('#debug').html(debugInfo);
 }
 
@@ -335,44 +351,45 @@ function updateHelp() {
     gs.help = {
       queue: [],
       displaying: false,
-      flags: {},
-      timers: {},
+      flags: {
+        'meteor': 1,
+        'grabFirst': 1,
+        'grabSecond': 1,
+        'connect': 4,
+        'hold': 2,
+        'cross': 4,
+        'missed': 1,
+        'congrats': 1},
       data: {}};
-    Object.keys(helpMessages).forEach(k=>
-        gs.help.flags[k]=false);
   }
 
   const data = gs.help.data;
 
+  if (gs.selected[0] > -1 && gs.selected[1] > -1) {
+    flashHelp('connect', 2);
+  }
+
   const meteorIds = Object.keys(gs.meteors);
   if (meteorIds.length > 0) {
-    if (!gs.help.timers.meteor) {
-      gs.help.timers.meteor = Date.now();
+    if (!data.meteorTime) {
+      data.meteorTime = Date.now();
     }
 
-    if (getElapsed(gs.help.timers.meteor) > 4) {
-          flashHelp('meteor', 3000);
+    if (getElapsed(data.meteorTime) > 4) {
+          flashHelp('meteor', 2);
     }
 
-    if (gs.hits > 0 && gs.data.minDist < 700) {
-      let matching = 0;
-      for (let i = 0; i < 2; i++) {
-        const selected = gs.selected[i];
-        if (selected > -1) {
-          const satellite = gs.satellites[selected];
-          if (satellite && data.closestMeteor
-              && satellite.type == data.closestMeteor.type)
-            matching += 1;
-        }
+    if (gs.help.flags.grabFirst + gs.help.flags.grabSecond > 0
+        && data.minDist < 600) {
+      const selected = (gs.selected[0] > -1) +
+                       (gs.selected[1] > -1);
+      if (selected == 0) {
+        flashHelp('grabFirst', 3, true);
+      } else if (selected == 1) {
+        gs.help.flags.grabFirst = 0;
+        flashHelp('grabSecond', 3, true);
       }
-
-      if (matching == 0) {
-        flashHelp('grabFirst', 4000, true);
-      } else if (matching == 1) {
-        flashHelp('grabSecond', 3000, true);
-      } else if (matching == 2) {
-        flashHelp('connect', 2000, true);
-      }
+      gs.help.flags.meteor = 0;
     }
   }
 }

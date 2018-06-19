@@ -26,10 +26,12 @@ $(document).ready(function(){
     switch(e.which) {
       case 67: // c
       case 86: // v
+        if (gs.selected[0] > -1) flashHelp('hold', 2.5);
         gs.selected[0] = -1;
         break;
       case 78: // n
       case 77: // m
+        if (gs.selected[1] > -1) flashHelp('hold', 2.5);
         gs.selected[1] = -1;
       default:
         gs.heldKeys.delete(e.which);
@@ -103,6 +105,13 @@ $(document).ready(function(){
         if (!(gs.selected[0] == -1 || gs.selected[1] ==  -1)) {
           createConnection(gs.selected[0], gs.selected[1]);
           playSound('connect');
+
+          if (gs.help) {
+            gs.help.flags.hold = 0;
+            gs.help.flags.grabFirst = 0;
+            gs.help.flags.grabSecond = 0;
+            gs.help.flags.connect = 0;
+          }
         } else playSound('whoosh');
         break;
       case 8: // backspace
@@ -217,4 +226,3 @@ function startTitles() {
   }
   requestAnimationFrame(animate);
 }
-

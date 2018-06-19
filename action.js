@@ -12,7 +12,12 @@ function selectWithPlayer(player) {
       gs.selected[player] = gs.highlighted[player];
       playSound('selectS1');
     }
-  } else playSound('whoosh');
+  } else {
+    playSound('whoosh');
+    if(gs.selected[otherPlayer(player)] > -1 &&
+       !gs.validConnection[player])
+       flashHelp('cross', 2);
+  }
 }
 
 function createConnection(id1,id2) {
@@ -186,19 +191,19 @@ function addWarning(meteorId) {
   gs.warnings[wId] = newWarning;
 }
 
-function flashHelp(message, duration, repeat) {
-  if (gs.help.flags[message] || gs.help.displaying) return false;
+function flashHelp(message, duration) {
+  if (!gs.help ||
+      gs.help.flags[message] < 1 ||
+      gs.help.displaying)
+    return false;
 
   const text = helpMessages[message];
-  const displayDuration = duration;
-  const fadeDuration = 1000;
-  const repeatInterval = 5000;
+  const displayDuration = duration*1000;
+  const fadeDuration = 600;
+  const messageInterval = 1000;
 
-  gs.help.flags[message] = true;
+  gs.help.flags[message] -= 1;
   gs.help.displaying = true;
-
-  if (repeat) setTimeout(()=>gs.help.flags[message]=false,
-                         repeatInterval);
 
   $('#help').html(text)
             .animate({opacity: 1}, fadeDuration,
@@ -206,7 +211,7 @@ function flashHelp(message, duration, repeat) {
                 $('#help').animate({opacity: 0}, fadeDuration,
                  ()=>setTimeout(()=>
                   gs.help.displaying=false,
-                  2000)),
+                  messageInterval)),
                 displayDuration));
   return true;
 }
