@@ -1,5 +1,5 @@
 const debug = false;
-const mode = 'browser';//'arcade';
+const mode = 'browser'; //options: browser, arcade
 
 const satelliteTypes = [
   {color: 'red',
@@ -48,7 +48,9 @@ const levels = [
   'Hard'
 ];
 
-const helpMessages = {
+let helpMessages = {
+  moveP1: "Player 1: Try using the left joystick to move around.",
+  moveP2: "Player 2: Try using the right joystick to move around.",
   meteor: "There's a meteor heading for Earth! Try connecting two satellites to block it.",
   grabFirst: "Use your joystick & joy buttons to grab and hold a satellite that matches the color of an incoming meteor.",
   grabSecond: "Great! Now hold onto this satellite, while the other player grabs a matching one.",
@@ -57,7 +59,15 @@ const helpMessages = {
   cross: "Careful! Connections can't cross Earth.",
   missed: "The meteor got through! Connections only block meteors of the same color.",
   congrats: "Nice job! You stopped a meteor and helped protect planet Earth."
-}
+};
+
+const browserHelp = {
+  moveP1: "Player 1: Try pressing the W-A-S-D keys to move around.",
+  moveP2: "Player 2: Try pressing the arrow keys to move around.",
+  grabFirst: "Press C (player 1) or M (player 2) to grab and hold a satellite that matches the color of an incoming meteor.",
+  connect: "Quick, hit the space bar to complete your connection!",
+  hold: "Remember: keep holding the key down! You'll lose your satellite if you let go."
+};
 
 function configureLevel(level) {
   switch(level) {
@@ -73,7 +83,7 @@ function configureLevel(level) {
       gs.minFrequency = 1.2;
 
       gs.maxMeteors = 4;
-      gs.nextMeteor = 5;
+      gs.nextMeteor = 1000000;
       gs.accelerateDelay = 27;
 
       gs.gravityProbability = 0;

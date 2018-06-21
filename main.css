@@ -254,7 +254,7 @@ body {
   padding-top: 12px;
 }
 
-#footer {
+.footer {
   color: #111;
   text-shadow: 0 0 5px #ddd;
   font-size: 28px;

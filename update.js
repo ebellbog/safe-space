@@ -85,6 +85,12 @@ function updatePlayers() {
     const newX = gs.playerPos[i][0]+gs.playerVector[i][0]*ts;
     const newY = gs.playerPos[i][1]+gs.playerVector[i][1]*ts;
 
+    if (gs.help &&
+        (gs.playerVector[i][0] || gs.playerVector[i][1])) {
+      if (i == 0) gs.help.flags.moveP1 = 0;
+      else gs.help.flags.moveP2 = 0;
+    }
+
     if (!isInBounds(newX, newY, 0)) {
       gs.playerVector[i] = [0,0];
       continue;
@@ -205,7 +211,16 @@ function updateMeteors() {
     });
   });
 
-  if (gs.help) gs.help.data.minDist = minDist;
+  // on easy mode, don't add meteor until both
+  // players have figured out how to move
+  if (gs.help) {
+    gs.help.data.minDist = minDist;
+    if (gs.help.flags.moveP1 + gs.help.flags.moveP2 == 0
+        && gs.nextMeteor == 1000000) {
+      gs.lastMeteorTime = Date.now();
+      gs.nextMeteor = 4;
+    }
+  }
 
   // add new meteor
   if (getElapsed(gs.lastMeteorTime) > gs.nextMeteor
@@ -352,6 +367,8 @@ function updateHelp() {
       queue: [],
       displaying: false,
       flags: {
+        'moveP1': 5,
+        'moveP2': 5,
         'meteor': 1,
         'grabFirst': 1,
         'grabSecond': 1,
@@ -364,6 +381,16 @@ function updateHelp() {
   }
 
   const data = gs.help.data;
+
+  if (getElapsed(gs.startTime) > 4.5) {
+    if ((gs.help.flags.moveP1 + gs.help.flags.moveP2) % 2) {
+      flashHelp('moveP2', 3);
+      flashHelp('moveP1', 3);
+    } else {
+      flashHelp('moveP1', 3);
+      flashHelp('moveP2', 3);
+    }
+  }
 
   if (gs.selected[0] > -1 && gs.selected[1] > -1) {
     flashHelp('connect', 2);

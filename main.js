@@ -1,7 +1,6 @@
 let animationId;
 
 $(document).ready(function(){
-  if (mode == 'arcade') $('body').css('cursor','none');
   $timer = $('#timer');
   gs = {};
 
@@ -115,7 +114,13 @@ $(document).ready(function(){
     }
   });
 
-  if (mode == 'browser') {
+  $('.arcade').toggle(mode == 'arcade');
+  $('.browser').toggle(mode == 'browser');
+
+  if (mode == 'arcade') $('body').css('cursor','none');
+  else {
+    helpMessages = Object.assign({}, helpMessages, browserHelp);
+
     $('#btn1').mouseover((e)=>{
       gs.activeBtn = 0;
       updateButtons();
