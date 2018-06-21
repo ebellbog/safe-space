@@ -211,13 +211,14 @@ function startGame() {
 
   setTimeout(()=>$('#stats').show(), 30);
   if (debug) $('#debug').show();
+  $('#help').show();
 }
 
 function endGame() {
   cancelAnimationFrame(animationId);
   playSound('gameover');
 
-  $('#stats, #debug').hide();
+  $('#stats, #debug, #help').hide();
   $('#game, #earth-canvas, #player-canvas').css('filter','blur(5px)');
 
   $('#gameover div:nth-child(2)').html(

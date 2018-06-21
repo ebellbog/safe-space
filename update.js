@@ -277,7 +277,11 @@ function updateTimer() {
 }
 
 function updateHealth() {
-  $('#health').html('\u2764'.repeat(gs.startHealth-gs.hits));
+  $health = $('#health').empty();
+  $heart = $('#heart').clone().css('display','inline-block');
+  for (let i = 0; i < gs.startHealth-gs.hits; i++) {
+    $health.append($heart.clone());
+  }
 }
 
 function updateMeteorsStopped() {
@@ -411,7 +415,7 @@ function updateHelp() {
       const selected = (gs.selected[0] > -1) +
                        (gs.selected[1] > -1);
       if (selected == 0) {
-        if (flashHelp('grabFirst', 3)) {
+        if (flashHelp('grabFirst', 4)) {
           gs.help.flags.meteor = 0;
         }
       } else if (selected == 1) {

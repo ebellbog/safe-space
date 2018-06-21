@@ -29,6 +29,7 @@ body {
   padding: 0;
   overflow: hidden;
   user-select: none;
+  -moz-user-select: none;
 }
 
 #game-wrapper {
@@ -125,17 +126,10 @@ body {
   font-weight: 400;
 }
 
-#health {
-  background: repeating-linear-gradient(315deg,
-  cyan 15%,
-  #28B463 30%,
-  cyan 45%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  text-shadow: none;
-  font-size: 18px;
-  letter-spacing: 1px;
-  margin-left: 2px;
+#heart {
+  display: none;
+  width: 21px;
+  height: 21px;
 }
 
 #start {
