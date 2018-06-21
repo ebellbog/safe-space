@@ -1,4 +1,5 @@
 const debug = false;
+const mode = 'browser';//'arcade';
 
 const satelliteTypes = [
   {color: 'red',

@@ -43,7 +43,6 @@ body {
 
 #player-canvas {
   height: 100%;
-  cursor: none;
   z-index: 4;
 }
 
@@ -53,6 +52,7 @@ body {
   padding: 20px;
   text-align: center;
   color: white;
+  z-index: 4;
 }
 
 #title {
@@ -347,11 +347,12 @@ body {
   animation-direction: alternate;
   animation-iteration-count: infinite;
   animation-timing-function: ease-in-out;
+  padding: 0 10px 0 10px;
 }
 
 @keyframes indicate {
-  from {margin: 0 10px 0 10px;}
-  to {margin: 0 18px 0 18px;}
+  from {margin: 0;}
+  to {margin: 0 8px 0 8px;}
 }
 
 #debug {

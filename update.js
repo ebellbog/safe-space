@@ -384,12 +384,15 @@ function updateHelp() {
       const selected = (gs.selected[0] > -1) +
                        (gs.selected[1] > -1);
       if (selected == 0) {
-        flashHelp('grabFirst', 3, true);
+        if (flashHelp('grabFirst', 3)) {
+          gs.help.flags.meteor = 0;
+        }
       } else if (selected == 1) {
-        gs.help.flags.grabFirst = 0;
-        flashHelp('grabSecond', 3, true);
+        if (flashHelp('grabSecond', 3)) {
+          gs.help.flags.grabFirst = 0;
+          gs.help.flags.meteor = 0;
+        }
       }
-      gs.help.flags.meteor = 0;
     }
   }
 }

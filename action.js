@@ -1,3 +1,24 @@
+function selectButton(btnIndex) {
+  if (btnIndex) setTimeout(startGame,800);
+  else {
+    $('.overlay').show();
+    gs.mode = 'howto';
+  }
+  playSound('start');
+}
+
+function increaseLevel() {
+  gs.level = (gs.level+1)%levels.length;
+  updateButtons();
+  playSound('switch');
+}
+
+function decreaseLevel() {
+  gs.level = (gs.level+levels.length-1)%levels.length;
+  updateButtons();
+  playSound('switch');
+}
+
 function selectWithPlayer(player) {
   if (gs.selected[player] != -1) return;
   if (gs.highlighted[player] > -1) {

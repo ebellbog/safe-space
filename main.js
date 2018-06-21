@@ -1,7 +1,9 @@
 let animationId;
 
 $(document).ready(function(){
+  if (mode == 'arcade') $('body').css('cursor','none');
   $timer = $('#timer');
+  gs = {};
 
   let $game = $('#game');
   gameCtx = $game[0].getContext('2d');
@@ -40,7 +42,7 @@ $(document).ready(function(){
 
   $(document).keydown(function(e) {
     if (gs.mode == 'gameover') {
-      if (Date.now()-gs.endTime > 1200) startTitles();
+      startTitles();
       return;
     }
 
@@ -57,38 +59,26 @@ $(document).ready(function(){
         case 83: // s
         case 40: // down
           gs.activeBtn = !gs.activeBtn;
+          updateButtons();
           playSound('select');
           break;
         case 37: // left
         case 65: // a
-          if (gs.activeBtn == 1) {
-            gs.level = (gs.level+levels.length-1)%levels.length;
-            playSound('switch');
-          }
+          if (gs.activeBtn == 1) decreaseLevel();
           break;
         case 39: // right
         case 68: // d
-          if (gs.activeBtn == 1) {
-            gs.level = (gs.level+1)%levels.length;
-            playSound('switch');
-          }
+          if (gs.activeBtn == 1) increaseLevel();
           break;
         case 13: // return
         case 32: // space
         case 67: // c
         case 78: // n
-          if (gs.activeBtn == 1) setTimeout(startGame,800);
-          else {
-            $('.overlay').show();
-            gs.mode = 'howto';
-          }
-          playSound('start');
+          selectButton(gs.activeBtn);
           break;
         default:
           break;
       }
-
-      updateButtons();
       return;
     }
 
@@ -124,6 +114,42 @@ $(document).ready(function(){
         break;
     }
   });
+
+  if (mode == 'browser') {
+    $('#btn1').mouseover((e)=>{
+      gs.activeBtn = 0;
+      updateButtons();
+    });
+    $('#btn2').mouseover((e)=>{
+      gs.activeBtn = 1;
+      updateButtons();
+    });
+
+    $('.indicator').click((e)=>{
+      e.stopPropagation();
+      const btnIndex = $(e.target).index();
+      if (btnIndex == 0) decreaseLevel();
+      else increaseLevel();
+      updateButtons();
+    });
+
+    $('#buttons div').click((e)=>{
+      e.stopPropagation();
+      const btnIndex = $(e.target).index();
+      selectButton(btnIndex);
+    });
+
+    $('body').click(()=>{
+      if (gs.mode == 'howto') {
+        $('.overlay').hide();
+        gs.mode = 'titles';
+      } else if (gs.mode == 'game') {
+        endGame();
+      } else if (gs.mode == 'gameover') {
+        startTitles();
+      }
+    });
+  }
 
   startTitles();
 });
@@ -201,6 +227,8 @@ function endGame() {
 }
 
 function startTitles() {
+  if (gs.endTime && getElapsed(gs.endTime) < 1.2) return;
+
   $('#gameover').hide();
   $('.titleScreen').show();
   $('#game, #earth-canvas, #player-canvas').css('filter','none');
