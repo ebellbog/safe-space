@@ -82,11 +82,13 @@ $(document).ready(function(){
     }
 
     switch(e.which) {
-      case 67: // c
       case 86: // v
+        if (mode == 'browser') break;
+      case 67: // c
         selectWithPlayer(0);
         break;
       case 78: // n
+        if (mode == 'browser') break;
       case 77: // m
         selectWithPlayer(1);
         break;
