@@ -1,102 +1,114 @@
 <html>
+
 <head>
-<script src="./lib/jquery-3.3.1.min.js"></script>
-<script src="./lib/poly-draw.js"></script>
-<script src="./util.js"></script>
-<script src="./config.js"></script>
-<script src="./setup.js"></script>
-<script src="./action.js"></script>
-<script src="./update.js"></script>
-<script src="./draw.js"></script>
-<script src="./audio.js"></script>
-<script src="./main.js"></script>
-<link rel="stylesheet" href="./main.css">
+    <script src="./lib/jquery-3.3.1.min.js"></script>
+    <script src="./lib/poly-draw.js"></script>
+    <script src="./util.js"></script>
+    <script src="./config.js"></script>
+    <script src="./setup.js"></script>
+    <script src="./action.js"></script>
+    <script src="./update.js"></script>
+    <script src="./draw.js"></script>
+    <script src="./audio.js"></script>
+    <script src="./main.js"></script>
+    <link rel="stylesheet" href="./main.css">
 </head>
-<body>
-<div id="game-wrapper" class="centered-full"><canvas id="game"
-    width="1920" height="1080"></canvas></div>
-<canvas id="earth-canvas" class="centered-earth"
-        width="300" height="300"></canvas>
-<canvas id="player-canvas" class="centered-full"
-        width="1920" height="1080"></canvas>
-<div id="help"></div>
-<div id="text" class="titleScreen centered">
-  <div id="title"> Safe Space </div>
-  <div id="tagline"> a game of cooperation and community
-        in outer space </div>
-  <div id="buttons">
-    <div id="btn1"> HOW TO PLAY </div>
-    <div id="btn2">
-      <span class="indicator"> < </span>
-      <span id="difficulty"> START EASY </span>
-      <span class="indicator"> > </span>
+
+<body class="show-text show-game">
+    <div id="game-wrapper" class="centered-full">
+        <canvas id="game" width="1920" height="1080"></canvas>
+        <canvas id="star-canvas" width="1920" height="1080"></canvas>
     </div>
-  </div>
-</div>
-<div id="howto" class="centered overlay">
-  <div id="howto-title">
-    Six Simple Steps for Saving the World
-  </div>
-  <div id="screenshots">
-    <div class="screenshot">
-      <img src="./img/meteors.gif"></img>
-      <div class="number">1</div>
-      <div class="caption"> Meteors are headed for Earth! Some move straight and others orbit. </div>
+    <canvas id="earth-canvas" class="centered-earth game-ui" width="300" height="300"></canvas>
+    <canvas id="player-canvas" class="centered-full game-ui" width="1920" height="1080"></canvas>
+    <div id="help"></div>
+    <div id="text" class="titleScreen centered">
+        <div id="title"> Safe Space </div>
+        <div id="tagline"> a game of cooperation and community
+            in outer space </div>
+        <div id="buttons">
+            <div id="btn1" class="menu-btn"> HOW TO PLAY </div>
+            <div id="btn2" class="menu-btn">
+                <span class="indicator">
+                    < </span>
+                        <span id="difficulty"> START EASY </span>
+                        <span class="indicator"> > </span>
+            </div>
+        </div>
     </div>
-    <div class="screenshot">
-      <img src="./img/fly.gif"></img>
-      <div class="number">2</div>
-      <div class="caption arcade"> You can connect satellites to stop them! Move your joystick to fly around. </div>
-      <div class="caption browser"> You can connect satellites to stop them! Use WASD (p1) or arrows (p2) to move. </div>
+    <div id="howto" class="centered">
+        <div id="howto-title">
+            Six Simple Steps for Saving the World
+        </div>
+        <div id="screenshots">
+            <div class="screenshot">
+                <img src="./img/meteors.gif"></img>
+                <div class="number">1</div>
+                <div class="caption"> Meteors are headed for Earth! Some move straight and others orbit. </div>
+            </div>
+            <div class="screenshot">
+                <img src="./img/fly.gif"></img>
+                <div class="number">2</div>
+                <div class="caption arcade"> You can connect satellites to stop them! Move your joystick to fly around.
+                </div>
+                <div class="caption browser">
+                    You can connect satellites to stop them! <br>
+                    Move: <span class="keycaps">WASD</span> (p1) or <span class="keycaps">¯˜<span class="flip-x">¯</span>¿</span> (p2)
+                </div>
+            </div>
+            <div class="screenshot">
+                <img src="./img/grab1.gif"></img>
+                <div class="number">3</div>
+                <div class="caption arcade"> Then press and hold a joystick button to grab the nearest satellite. Don't
+                    let go! </div>
+                <div class="caption browser">
+                    Then press and hold <span class="keycaps">C</span> (p1) or <span class="keycaps">/</span> (p2) to grab the nearest satellite. Don't let go! </div>
+            </div>
+            <div class="screenshot">
+                <img src="./img/grab2.gif"></img>
+                <div class="number">4</div>
+                <div class="caption"> Now the other player can grab a satellite of the same color and shape. </div>
+            </div>
+            <div class="screenshot">
+                <img src="./img/connect.gif"></img>
+                <div class="number">5</div>
+                <div class="caption arcade"> Hit the center button to connect! Satellites can't connect across Earth.
+                </div>
+                <div class="caption browser"> Hit the space bar <span class="keycaps">ð</span> to connect! Satellites can't connect across Earth.
+                </div>
+            </div>
+            <div class="screenshot">
+                <img src="./img/miss_hit.gif"></img>
+                <div class="number">6</div>
+                <div class="caption"> Connections stop meteors of the same type. They break after use, so make more!
+                </div>
+            </div>
+        </div>
+        <div class="footer menu-btn"> BACK </div>
     </div>
-    <div class="screenshot">
-      <img src="./img/grab1.gif"></img>
-      <div class="number">3</div>
-      <div class="caption arcade"> Then press and hold a joystick button to grab the nearest satellite. Don't let go! </div>
-      <div class="caption browser"> Then press and hold C (p1) or M (p2) to grab the nearest satellite. Don't let go! </div>
+    <div id="stats" class="game-ui">
+        <h3> Earth safe for <span id="timer">0:00</span></h3>
+        <h3> Meteors stopped: <span id="stopped">0</span></h3>
+        <h3> Health: <span id="health"></span></h3>
     </div>
-    <div class="screenshot">
-      <img src="./img/grab2.gif"></img>
-      <div class="number">4</div>
-      <div class="caption"> Now the other player can grab a satellite of the same color and shape. </div>
+    <img id="heart" src="./img/heart.svg"></img>
+    <div id="credit" class="titleScreen">
+        Design &amp; Development by Elana Bell Bogdan
     </div>
-    <div class="screenshot">
-      <img src="./img/connect.gif"></img>
-      <div class="number">5</div>
-      <div class="caption arcade"> Hit the center button to connect! Satellites can't connect across Earth. </div>
-      <div class="caption browser"> Hit the space bar to connect! Satellites can't connect across Earth. </div>
+    <div id="gameover-wrapper" class="centered-full">
+        <div id="gameover" class="centered">
+            <div> Earth may be a hot mess, but your
+                teamwork kept the planet safe for </div>
+            <div> 0:00 | 0 meteors </div>
+            <div> Difficulty: Normal </div>
+            <div> Thanks for playing! </div>
+        </div>
     </div>
-    <div class="screenshot">
-      <img src="./img/miss_hit.gif"></img>
-      <div class="number">6</div>
-      <div class="caption"> Connections stop meteors of the same type. They break after use, so make more! </div>
-    </div>
-  </div>
-  <div class="footer arcade"> PRESS ANY BUTTON TO RETURN </div>
-  <div class="footer browser"> PRESS ANY KEY TO RETURN </div>
-</div>
-<div id="gradient" class="overlay centered-full"><div></div></div>
-<div id="matte" class="overlay centered-full"></div>
-<div id="stats">
-  <h3> Earth safe for <span id="timer">0:00</span></h3>
-  <h3> Meteors stopped: <span id="stopped">0</span></h3>
-  <h3> Health: <span id="health"></span></h3>
-</div>
-<img id="heart" src="./img/heart.svg"></img>
-<div id="credit" class="titleScreen">
-  Design &amp; Development by Elana Bell Bogdan
-</div>
-<div id="gameover" class="centered">
-  <div> Earth may be a hot mess, but your
-    teamwork kept the planet safe for </div>
-  <div> 0:00 | 0 meteors </div>
-  <div> Difficulty: Normal </div>
-  <div> Thanks for playing! </div>
-</div>
-<div id="debug"></div>
-<img id="earth1" src="./img/earth.png" hidden></img>
-<img id="earth2" src="./img/cracked-earth.png" hidden></img>
-<img id="earth3" src="./img/cracked-earth2.png" hidden></img>
-<img id="earth4" src="./img/broken-earth.png" hidden></img>
+    <div id="debug"></div>
+    <img id="earth1" src="./img/earth.png" hidden></img>
+    <img id="earth2" src="./img/cracked-earth.png" hidden></img>
+    <img id="earth3" src="./img/cracked-earth2.png" hidden></img>
+    <img id="earth4" src="./img/broken-earth.png" hidden></img>
 </body>
+
 </html>

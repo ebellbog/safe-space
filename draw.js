@@ -1,7 +1,8 @@
 function draw() {
   gameCtx.clearRect(0,0,cWidth,cHeight);
-  drawStars(gameCtx);
   drawSatellites(gameCtx);
+
+  drawStars(starCtx);
 
   drawEarth(); // (using earthCtx)
 
@@ -55,7 +56,7 @@ function drawEarth() {
 }
 
 function drawLogo(ctx) {
-  const elapsed = getElapsed(gs.startTime);
+  const elapsed = getElapsed(gs.titleStartTime);
   const radius = 365+27*Math.sin(elapsed/1.5);
   const length = 675;
   const rotation = 3*Math.PI/10+elapsed/10;
@@ -87,8 +88,9 @@ function drawLogo(ctx) {
 }
 
 function drawStars(ctx) {
+  starCtx.clearRect(0, 0, cWidth, cHeight);
   gs.stars.forEach(s=>{
-    let bri = Math.floor(Math.sin((Date.now()-gs.startTime)/500
+    let bri = Math.floor(Math.sin((Date.now()-gs.titleStartTime)/500
               +s.twinkle*100)*75+180);
     ctx.fillStyle=`rgb(${bri},${bri},${bri})`;
     ctx.beginPath();
@@ -281,7 +283,7 @@ function drawSatellites(ctx) {
   gs.connected.forEach(id=>{
     const s = gs.satellites[id];
     drawPolygon(ctx, s.x, s.y, s.type.sides, satelliteSize+3.7,
-               {color:s.type.color, style:'fill'});
+                {color:s.type.color, style:'fill'});
   });
 
   gs.highlighted = newHighlighted;

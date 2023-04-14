@@ -1,8 +1,14 @@
 function selectButton(btnIndex) {
-  if (btnIndex) setTimeout(startGame,800);
-  else {
-    $('.overlay').show();
-    gs.mode = 'howto';
+  if (btnIndex) {
+    $('body').removeClass('show-text show-game');
+    setTimeout(startGame, 1100);
+  } else {
+    const $body = $('body');
+    $body.removeClass('show-text show-game');
+    setTimeout(() => {
+      $body.addClass('show-howto')
+      gs.mode = 'howto';
+    }, 1000);
   }
   playSound('start');
 }

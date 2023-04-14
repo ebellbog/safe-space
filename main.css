@@ -3,23 +3,25 @@
   src: url('./fonts/Exo2-ExtraLight.ttf');
   font-weight: 200;
 }
-
 @font-face {
   font-family: 'Exo 2';
   src: url('./fonts/Exo2-Regular.ttf');
   font-weight: 400;
 }
-
 @font-face {
   font-family: 'Exo 2';
   src: url('./fonts/Exo2-SemiBold.ttf');
   font-weight: 600;
 }
-
 @font-face {
   font-family: 'Exo 2';
   src: url('./fonts/Exo2-ExtraBold.ttf');
   font-weight: 800;
+}
+
+@font-face {
+  font-family: 'Keycaps';
+  src: url('./fonts/Keycaps.ttf');
 }
 
 body {
@@ -38,8 +40,16 @@ body {
 }
 
 #game {
-  background-color: #444;
+  position: absolute;
   width: 100%;
+  height: 100%;
+  z-index: 2;
+}
+
+#star-canvas {
+  position: absolute;
+  width: 100%;
+  height: 100%;
 }
 
 #player-canvas {
@@ -54,6 +64,21 @@ body {
   text-align: center;
   color: white;
   z-index: 4;
+  opacity: 0;
+}
+
+#game, #text, #howto, #gameover-wrapper, .game-ui {
+  opacity: 0;
+  transition: opacity 1s;
+  pointer-events: none;
+}
+.show-text #text,
+.show-game #game,
+.show-howto #howto,
+.show-gameover #gameover-wrapper,
+.show-game-ui .game-ui {
+  opacity: 1;
+  pointer-events: all;
 }
 
 #title {
@@ -84,7 +109,11 @@ body {
   width: 100%;
 }
 
-#buttons div {
+#buttons .menu-btn {
+  width: 280px;
+}
+
+.menu-btn {
   background-color: rgb(57,57,57);
   box-shadow: inset 1px 1px 5px rgba(0,0,0,0.6);
   text-shadow: 1px 1px 2px rgba(0,0,0,.7);
@@ -96,13 +125,16 @@ body {
                                 cyan,
                                 blueviolet) 1;
   margin: 12px auto 12px auto;
-  width: 280px;
   height: 38px;
   line-height: 38px;
   font-size: 24px;
+  cursor: pointer;
+  min-width: 140px;
+  text-align: center;
+  color: white;
 }
 
-#buttons .active {
+.menu-btn.active, .menu-btn:hover {
   background-color: white;
   color: #333;
   text-shadow: none;
@@ -115,7 +147,6 @@ body {
   padding: 10px 20px 5px 12px;
   margin: 15px;
   border-radius: 10px;
-  display: none;
   z-index: 6;
 }
 
@@ -149,6 +180,11 @@ body {
   margin: 10px;
   text-shadow: 1px 1px 1px black;
   opacity: 0.5;
+  z-index: 4;
+}
+
+#gameover-wrapper {
+  backdrop-filter: blur(5px);
 }
 
 #gameover {
@@ -237,26 +273,33 @@ body {
   z-index: 4;
   height: 768px;
   width: 1365px;
+  backdrop-filter: brightness(.7) blur(2px);
 }
 
 #howto-title {
   color: white;
-  font-size: 66px;
-  font-weight: 600;
+  font-size: 64px;
+  font-weight: 400;
   text-shadow: 0 0 15px #ccc;
   text-align: center;
-  padding-top: 12px;
+  letter-spacing: 1px;
+  padding-top: 10px;
+}
+
+.keycaps {
+  font-family: 'Keycaps';
+  font-size: 19px;
+}
+.flip-x {
+  display: inline-block;
+  transform: scaleX(-1);
 }
 
 .footer {
-  color: #111;
-  text-shadow: 0 0 5px #ddd;
-  font-size: 28px;
-  font-weight: 400;
   position: absolute;
   left: 50%;
-  bottom: 20px;
-  transform: translate(-50%,0);
+  bottom: 6px;
+  transform: translate(-50%, 0);
 }
 
 #screenshots {
@@ -265,7 +308,7 @@ body {
   justify-content: center;
   width: 1200px;
   position: absolute;
-  top: 53%;
+  top: 52%;
   left: 50%;
   transform: translate(-50%, -50%);
 }
@@ -275,7 +318,7 @@ body {
   height: 270px;
   margin: 15px;
   border-radius: 15px;
-  box-shadow: 3px 3px 0 black;
+  border: 3px solid;
   overflow: hidden;
   background-color: #444;
   position: relative;
@@ -288,7 +331,7 @@ body {
 
 .screenshot .caption {
   background: linear-gradient(
-    90deg,
+    180deg,
     rgba(120,120,120,0.9),
     rgba(50,50,50,0.5)
     );
@@ -298,8 +341,9 @@ body {
   position: absolute;
   left: 0;
   bottom: 0;
-  padding: 10px;
+  padding: 5px 10px;
   font-size: 18px;
+  line-height: 22px;
 }
 
 .screenshot .number {
@@ -317,36 +361,63 @@ body {
 .screenshot:nth-child(1) .number {
   background-color: tomato;
 }
+.screenshot:nth-child(1) {
+  border-color: tomato;
+}
 .screenshot:nth-child(2) .number {
   background-color: yellow;
+}
+.screenshot:nth-child(2) {
+  border-color: yellow;
 }
 .screenshot:nth-child(3) .number {
   background-color: limegreen;
 }
+.screenshot:nth-child(3) {
+  border-color: limegreen;
+}
 .screenshot:nth-child(4) .number {
   background-color: cyan;
+}
+.screenshot:nth-child(4) {
+  border-color: cyan;
 }
 .screenshot:nth-child(5) .number {
   background-color: blueviolet;
 }
+.screenshot:nth-child(5) {
+  border-color: blueviolet;
+}
 .screenshot:nth-child(6) .number {
   background-color: tomato;
+}
+.screenshot:nth-child(6) {
+  border-color: tomato;
 }
 
 .indicator {
   color: black;
   font-weight: 600;
+  padding: 0 10px;
+}
+.indicator:first-child {
+  padding-left: 30px;
+}
+.indicator:last-child {
+  padding-right: 20px;
+}
+
+@keyframes indicate {
+  from {margin: 0;}
+  to {margin: 0 10px;}
+}
+
+#difficulty {
   animation-name: indicate;
   animation-duration: .8s;
   animation-direction: alternate;
   animation-iteration-count: infinite;
   animation-timing-function: ease-in-out;
-  padding: 0 10px 0 10px;
-}
-
-@keyframes indicate {
-  from {margin: 0;}
-  to {margin: 0 8px 0 8px;}
 }
 
 #debug {

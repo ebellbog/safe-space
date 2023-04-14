@@ -294,7 +294,10 @@ function updateButtons() {
     $btn.toggleClass('active',i == gs.activeBtn);
   }
 
-  let btnLabel = 'START '+levels[gs.level].toUpperCase();
+  let btnLabel = 'START';
+  if (gs.level !== 1) {
+    btnLabel += ` (${levels[gs.level].toUpperCase()})`;
+  }
 
   $('.indicator').toggle(gs.activeBtn == 1);
   $('#difficulty').html(btnLabel);
