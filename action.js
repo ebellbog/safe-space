@@ -219,7 +219,9 @@ function addWarning(meteorId) {
 }
 
 function flashHelp(message, duration) {
-  if (!gs.help ||
+  if (
+      !gs.help ||
+      gs.level > 0 ||
       gs.help.flags[message] < 1 ||
       gs.help.displaying)
     return false;

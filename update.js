@@ -6,7 +6,7 @@ function update() {
   updatePlayers();
   updateTimer();
   updateDifficulty();
-  if (gs.level == 0) updateHelp();
+  if (gs.level === 0) updateHelp();
   if (debug) updateDebug();
 }
 

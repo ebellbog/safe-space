@@ -64,7 +64,7 @@ let helpMessages = {
 const browserHelp = {
   moveP1: "Player 1: Try pressing the W-A-S-D keys to move around.",
   moveP2: "Player 2: Try pressing the arrow keys to move around.",
-  grabFirst: "Press C (player 1) or M (player 2) to grab and hold a satellite that matches the color of an incoming meteor.",
+  grabFirst: "Press C (player 1) or > (player 2) to grab and hold a satellite that matches the color of an incoming meteor.",
   connect: "Quick, hit the space bar to complete your connection!",
   hold: "Remember: keep holding the key down! You'll lose your satellite if you let go."
 };

@@ -34,7 +34,7 @@ $(document).ready(function () {
                 gs.selected[0] = -1;
                 break;
             case 78: // n
-            case 191: // ?
+            case 190: // >
                 if (gs.selected[1] > -1) flashHelp('hold', 2.5);
                 gs.selected[1] = -1;
             default:
@@ -91,7 +91,7 @@ $(document).ready(function () {
                 break;
             case 78: // n
                 if (mode == 'browser') break;
-            case 191: // ?
+            case 190: // >
                 selectWithPlayer(1);
                 break;
             case 32: // space
@@ -227,7 +227,7 @@ function endGame() {
 
     $('#gameover div:nth-child(2)').html(
         `${$('#timer').html()} &nbsp;|&nbsp;
-        ${$('#stopped').html()} meteors`);
+        ${gs.meteorsStopped} meteor${gs.meteorsStopped === 1 ? '' : 's'}`);
     $('#gameover div:nth-child(3)').html(
         `Difficulty: ${levels[gs.level]}`);
 
