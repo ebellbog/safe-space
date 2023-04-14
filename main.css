@@ -80,6 +80,10 @@ body {
   opacity: 1;
   pointer-events: all;
 }
+.show-game-ui #credit, .show-gameover #credit {
+  opacity: 0;
+  pointer-events: none;
+}
 
 #title {
   font-size: 72px;
@@ -196,8 +200,11 @@ body {
   text-shadow: 1px 1px 1px rgba(0, 0, 0, .7);
   opacity: 0.35;
   text-decoration: none;
+  transition: opacity .5s;
+  text-align: right;
 }
 #credit:hover {
+  opacity: 1;
   text-decoration: underline;
 }
 
